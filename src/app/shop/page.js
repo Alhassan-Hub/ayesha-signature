@@ -7,7 +7,6 @@ import { Environment, Float, ContactShadows, useGLTF, Center } from '@react-thre
 import * as THREE from 'three';
 import CustomizerModal from '@/components/CustomizerModal';
 import GlobalCanvas from '@/components/GlobalCanvas';
-import Link from 'next/link';
 
 const modelConfigs = {
   'magic-cup': { scale: 1.7, position: [0, 0, 0], rotation: [0, 0, 0] },
@@ -15,6 +14,7 @@ const modelConfigs = {
   'signature-hijab': { scale: 0.3, position: [0, 0, 0], rotation: [0, Math.PI / 4, 0] }
 };
 
+// === THE FIX: PRELOAD THE MODELS SO THEY NEVER HANG ===
 useGLTF.preload('/cup.glb');
 useGLTF.preload('/mat.glb');
 useGLTF.preload('/hijab.glb');
@@ -30,6 +30,8 @@ function CarouselItem({ file, isCurrent, config }) {
     const nextScale = THREE.MathUtils.lerp(currentScale, targetScale, delta * 5);
     
     groupRef.current.scale.set(nextScale, nextScale, nextScale);
+    
+    // THE FIX: We let the animation loop strictly control visibility so React doesn't break it
     groupRef.current.visible = nextScale > 0.01;
 
     if (isCurrent) groupRef.current.rotation.y += delta * 0.4; 
@@ -38,6 +40,7 @@ function CarouselItem({ file, isCurrent, config }) {
 
   return (
     <group position={config.position} rotation={[config.rotation[0], 0, config.rotation[2]]}>
+      {/* Removed the hardcoded visibility here so it doesn't fight the animation loop! */}
       <group ref={groupRef} scale={0}>
         <Float speed={isCurrent ? 2 : 0} rotationIntensity={0} floatIntensity={isCurrent ? 0.2 : 0}>
           <Center><primitive object={scene} /></Center>
@@ -53,6 +56,7 @@ export default function ShopPage() {
   const [activeCustomizer, setActiveCustomizer] = useState(null); 
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // === SHOPPING CART STATE ===
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
@@ -106,12 +110,11 @@ export default function ShopPage() {
 
   const removeFromCart = (productId) => setCart((prevCart) => prevCart.filter(item => item.id !== productId));
 
-  // NEW: UPDATED CART CHECKOUT (Includes Image URLs and Bullet points)
   const checkoutViaWhatsApp = () => {
     if (cart.length === 0) return;
-    const itemList = cart.map(item => `▪ ${item.qty}x *${item.name}*\nImage: ${item.imageUrl}`).join('\n\n');
-    const msg = `Hello Ayesha! I would like to place an order from your website:\n\n${itemList}\n\nPlease let me know the total and payment details. Thank you!`;
-    window.open(`https://wa.me/23272273689?text=${encodeURIComponent(msg)}`, '_blank');
+    const itemList = cart.map(item => `▪ ${item.qty}x ${item.name}`).join('%0A');
+    const msg = `Hello Ayesha! I would like to place an order from your website:%0A%0A${itemList}%0A%0APlease let me know the total and payment details. Thank you!`;
+    window.open(`https://wa.me/23272273689?text=${msg}`, '_blank');
   };
 
   return (
@@ -119,18 +122,20 @@ export default function ShopPage() {
       <GlobalCanvas />
       <div className="absolute inset-0 bg-[#0A0808]/70 z-0 pointer-events-none" />
 
+      {/* NAVIGATION */}
       <nav className="fixed top-0 w-full z-40 bg-transparent pointer-events-auto mix-blend-difference">
         <div className="max-w-7xl mx-auto px-6 py-8 flex items-center justify-between relative">
-          <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-white transition-colors flex items-center gap-2 z-10">
+          <a href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-white transition-colors flex items-center gap-2 z-10">
             <span>←</span> Back
-          </Link>
+          </a>
           <div className="absolute left-1/2 -translate-x-1/2">
-            <Link href="/" className="font-serif font-bold text-[14px] tracking-[0.2em] text-[#FDF8F5] uppercase">Ayesha's Signature</Link>
+            <a href="/" className="font-serif font-bold text-[14px] tracking-[0.2em] text-[#FDF8F5] uppercase">Ayesha's Signature</a>
           </div>
           <div className="w-16 hidden md:block"></div>
         </div>
       </nav>
 
+      {/* FLOATING CART BUTTON */}
       <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -142,6 +147,7 @@ export default function ShopPage() {
         )}
       </button>
 
+      {/* CART SLIDE-OUT DRAWER */}
       <div className={`fixed inset-y-0 right-0 w-full md:w-[400px] bg-[#0A0808]/95 backdrop-blur-3xl z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col shadow-2xl border-l border-white/10 ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center p-6 border-b border-white/10">
           <h2 className="font-serif font-bold text-xl text-white">Your Bag</h2>
@@ -177,6 +183,7 @@ export default function ShopPage() {
         )}
       </div>
 
+      {/* FULL SCREEN 3D EXPERIENCE */}
       <div className="relative w-full h-screen flex flex-col items-center justify-center z-10">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
           <span className="text-[#DDA7A5] text-[10px] font-semibold uppercase tracking-[0.4em]">{activeItem.tag}</span>
@@ -185,17 +192,17 @@ export default function ShopPage() {
 
         {!activeCustomizer && (
           <div className="absolute inset-0 w-full h-full z-10 pointer-events-none animate-in fade-in duration-700">
-            <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-[#DDA7A5] text-[10px] uppercase tracking-widest">Loading 3D Studio...</div>}>
-              <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
-                <ambientLight intensity={1.5} color="#FFF5F0" />
-                <spotLight position={[5, 10, 5]} intensity={2.5} color="#DDA7A5" />
-                <Environment preset="studio" />
+            <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
+              <ambientLight intensity={1.5} color="#FFF5F0" />
+              <spotLight position={[5, 10, 5]} intensity={2.5} color="#DDA7A5" />
+              <Environment preset="studio" />
+              <Suspense fallback={null}>
                 {customItems.map((item, index) => (
                   <CarouselItem key={item.id} file={item.file} isCurrent={currentIndex === index} config={modelConfigs[item.id]} />
                 ))}
-                <ContactShadows position={[0, -1.8, 0]} opacity={0.6} scale={15} blur={2.5} far={4} color="#000000" />
-              </Canvas>
-            </Suspense>
+              </Suspense>
+              <ContactShadows position={[0, -1.8, 0]} opacity={0.6} scale={15} blur={2.5} far={4} color="#000000" />
+            </Canvas>
           </div>
         )}
 
@@ -214,6 +221,7 @@ export default function ShopPage() {
         </div>
       </div>
 
+      {/* FIREBASE GRID */}
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-20 relative z-10 pb-32">
         <div className="mb-12 border-b border-white/10 pb-6 flex items-end justify-between">
           <div>
@@ -236,11 +244,10 @@ export default function ShopPage() {
                 <h3 className="text-xs font-serif text-white mb-1 group-hover:text-[#DDA7A5] transition-colors line-clamp-1">{product.name}</h3>
                 {product.price && <p className="text-[9px] tracking-widest opacity-50 mb-4">{product.price}</p>}
                 
-                {/* NEW: SINGLE ITEM INSTANT BUY (WITH IMAGE URL) */}
                 <div className="mt-auto flex flex-col gap-2 pt-2">
                   <button 
                     onClick={() => {
-                      const msg = `Hello Ayesha! I would like to order this item:\n\n*${product.name}*\n${product.price ? `Price: ${product.price}\n` : ''}Image: ${product.imageUrl}`;
+                      const msg = `Hello Ayesha! I want to instantly order the: ${product.name}`;
                       window.open(`https://wa.me/23272273689?text=${encodeURIComponent(msg)}`, '_blank');
                     }}
                     className="w-full py-3 text-center bg-[#FDF8F5] text-black text-[9px] font-bold uppercase tracking-[0.2em] rounded shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:bg-[#DDA7A5] hover:text-white transition-all duration-300"
