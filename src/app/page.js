@@ -2,7 +2,6 @@
 import { useEffect, useState, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import GlobalCanvas from '@/components/GlobalCanvas';
 import Navbar from '@/components/Navbar';
 import { db } from '@/utils/firebase';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
@@ -14,12 +13,8 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const storyLeftRef = useRef(null);
-  const storyRightRef = useRef(null);
-  const gridRef = useRef(null);
 
   const WHATSAPP_URL = "https://wa.me/23272273689?text=Hello%20Ayesha!";
-  // FIXED TIKTOK URL (No tracking code!)
   const TIKTOK_URL = "https://www.tiktok.com/@ayeshassignature1";
 
   useEffect(() => {
@@ -45,83 +40,72 @@ export default function Home() {
   useEffect(() => {
     if (!isLoading) {
       gsap.utils.toArray('.reveal-text').forEach((el) => {
-        gsap.fromTo(el, { y: 40, opacity: 0 }, {
+        gsap.fromTo(el, { y: 30, opacity: 0 }, {
           y: 0, opacity: 1, duration: 1.2, ease: "power3.out",
           scrollTrigger: { trigger: el, start: "top 85%", toggleActions: "play none none reverse" }
         });
-      });
-
-      gsap.to(storyLeftRef.current, {
-        y: -50, ease: "none",
-        scrollTrigger: { trigger: storyLeftRef.current, start: "top bottom", end: "bottom top", scrub: true }
-      });
-      
-      gsap.to(storyRightRef.current, {
-        y: -100, ease: "none",
-        scrollTrigger: { trigger: storyRightRef.current, start: "top bottom", end: "bottom top", scrub: true }
       });
     }
   }, [isLoading]);
 
   return (
-    <main className="relative w-full overflow-hidden font-sans text-[#FDFBFF] bg-[#090212]">
-      <GlobalCanvas />
-      <div className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/20 to-[#090212] z-0 pointer-events-none"></div>
-
+    // LIGHT THEME: Soft Cream Background
+    <main className="relative w-full overflow-hidden font-sans bg-[#FAF9F6] text-[#2C2424]">
+      
       <Navbar />
 
-      <div className="relative z-10 pointer-events-none pt-32">
+      <div className="relative z-10 pt-32">
         
-        <section className="h-[75vh] flex flex-col items-center justify-center text-center px-4">
-          <div className="pointer-events-auto reveal-text text-white"> 
-            <h1 className="text-5xl md:text-8xl font-light tracking-widest uppercase mb-4 drop-shadow-2xl">
-              Ayesha's
-              <span className="block font-serif font-bold italic lowercase text-5xl md:text-8xl mt-2 text-[#D1A3FF] drop-shadow-[0_0_20px_rgba(209,163,255,0.3)]">
-                signature
-              </span>
-            </h1>
-            <p className="text-xs md:text-sm tracking-[0.4em] uppercase opacity-70 mt-8">
-              Elegance in every thread
-            </p>
-          </div>
-        </section>
-
-        <section className="py-24 px-6 md:px-16 lg:px-24 w-full">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 md:gap-24 pointer-events-auto">
-            <div className="w-full md:w-1/2" ref={storyLeftRef}>
-              <p className="text-[#D1A3FF] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Our Journey</p>
-              <h2 className="text-4xl md:text-6xl font-serif font-bold leading-tight">
+        {/* --- THE BIOGRAPHY HERO SECTION --- */}
+        <section className="min-h-[80vh] flex flex-col items-center justify-center px-6 md:px-16 lg:px-24">
+          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-20">
+            
+            {/* Left: Ayesha's Story */}
+            <div className="w-full md:w-3/5 reveal-text">
+              <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Meet the Founder</p>
+              <h1 className="text-4xl md:text-6xl font-serif font-bold leading-tight mb-8 text-[#2C2424]">
                 "Nothing but faith <br /> 
-                <span className="text-[#D1A3FF] italic font-light">and a vision."</span>
-              </h2>
+                <span className="text-[#DDA7A5] italic font-light">and a vision."</span>
+              </h1>
+              <p className="text-sm md:text-lg opacity-80 leading-relaxed mb-6 font-light">
+                Assalamu alaikum. I'm Ayesha. One year ago, I came on here with a simple promise: if you are looking for affordable, intentional Muslim packages, then I am your right choice. Alhamdulillah, you guys believed in me.
+              </p>
+              <p className="text-sm md:text-lg opacity-80 leading-relaxed mb-10 font-light">
+                For a whole year, you have trusted me with your Ramadan packages, your prayer sets, and your hijabs. You didn't just support a business—you supported a dream. As we prepare for this beautiful season of Ibadah, let me help you craft the perfect, meaningful gift once again.
+              </p>
+              <Link href="/shop" className="inline-block px-10 py-4 bg-[#DDA7A5] text-white rounded-full uppercase tracking-widest text-[10px] font-bold transition-all hover:bg-[#D4AF37] shadow-lg">
+                Explore The Collection
+              </Link>
             </div>
-            <div className="w-full md:w-1/2 md:mt-12" ref={storyRightRef}>
-              <div className="bg-white/5 p-8 rounded-3xl backdrop-blur-md border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                <p className="text-sm md:text-lg opacity-80 leading-relaxed mb-6 font-light">
-                  One year ago, I started with a simple promise: if you are looking for affordable, intentional Muslim packages, I am your right choice. Alhamdulillah, you didn't just support a business—you supported a dream. 
-                </p>
-                <p className="text-sm md:text-lg opacity-80 leading-relaxed mb-8 font-light">
-                  For a whole year, you've trusted Ayesha's Signature with your Ramadan packages, bespoke prayer sets, and premium hijabs. Let me help you craft the perfect, meaningful gift once again.
-                </p>
-                <Link href="/shop" className="inline-block px-8 py-4 bg-white text-black rounded-full uppercase tracking-widest text-[10px] font-bold transition-all hover:bg-[#D1A3FF] shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                  Explore Collection
-                </Link>
+
+           {/* Right: Elegant Logo Placeholder */}
+            <div className="w-full md:w-2/5 reveal-text">
+              <div className="w-full aspect-[3/4] bg-white rounded-t-full p-2 shadow-xl border border-gray-100">
+                <div className="w-full h-full rounded-t-full bg-[#FDF8F5] overflow-hidden relative flex items-center justify-center">
+                  
+                  {/* Shows the logo perfectly centered in the arch */}
+                  <img src="/logo.png" alt="Ayesha's Signature" className="w-1/2 h-auto object-contain opacity-60" />
+
+                </div>
               </div>
             </div>
+
           </div>
         </section>
 
-        <section className="w-full py-5 overflow-hidden flex whitespace-nowrap border-y border-white/5 pointer-events-auto bg-[#030105]/80 backdrop-blur-md mt-10">
-          <div className="animate-marquee flex gap-12 text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase items-center text-[#D1A3FF] opacity-90">
+        {/* --- SCROLLING MARQUEE (Rose Gold) --- */}
+        <section className="w-full py-5 overflow-hidden flex whitespace-nowrap bg-[#FDF8F5] border-y border-[#DDA7A5]/20 mt-16">
+          <div className="animate-marquee flex gap-12 text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase items-center text-[#DDA7A5]">
             <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
             <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
           </div>
         </section>
 
-        <section className="py-24 px-6 md:px-16 lg:px-24 relative z-20 pointer-events-auto">
+        {/* --- SHOP GRID --- */}
+        <section className="py-24 px-6 md:px-16 lg:px-24">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-12 reveal-text text-center md:text-left border-b border-white/10 pb-6">
-              <h2 className="text-3xl md:text-4xl font-serif font-bold">Curated Selection</h2>
+            <div className="mb-12 reveal-text text-center border-b border-gray-200 pb-6">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424]">Curated Selection</h2>
             </div>
 
             {isLoading ? (
@@ -131,20 +115,18 @@ export default function Home() {
             ) : (
               <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 gap-y-10">
                 {products.map((product) => (
-                  <div key={product.id} className="group cursor-pointer reveal-text flex flex-col">
-                    <div className="relative w-full aspect-[4/5] overflow-hidden bg-[#111] rounded-lg shadow-sm border border-white/5">
-                      <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-1000 ease-out group-hover:scale-110 opacity-90 group-hover:opacity-100" />
+                  <div key={product.id} className="group cursor-pointer reveal-text flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-gray-50 mb-4">
+                      <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-1000 ease-out group-hover:scale-110" />
                     </div>
-                    <div className="mt-4 flex flex-col items-start gap-1">
-                      <h3 className="text-xs md:text-sm font-serif font-bold group-hover:text-[#D1A3FF] transition-colors">{product.name}</h3>
-                      {product.price && <p className="text-[10px] opacity-50 tracking-widest mb-3">{product.price}</p>}
+                    <div className="flex flex-col items-start gap-1 px-1">
+                      <h3 className="text-xs md:text-sm font-serif font-bold group-hover:text-[#DDA7A5] transition-colors">{product.name}</h3>
+                      {product.price && <p className="text-[10px] opacity-60 tracking-widest mb-3">{product.price}</p>}
                     </div>
-
-                    {/* NEW: WHATSAPP BUTTON WITH IMAGE LINK INCLUDED! */}
                     <a 
                       href={`https://wa.me/23272273689?text=${encodeURIComponent(`Hello Ayesha! I would like to order this item:\n\n*${product.name}*\n${product.price ? `Price: ${product.price}\n` : ''}Image: ${product.imageUrl}`)}`} 
                       target="_blank" rel="noopener noreferrer"
-                      className="mt-auto w-full py-3 text-center border border-white/10 text-white text-[9px] font-bold uppercase tracking-[0.2em] hover:bg-[#DDA7A5] hover:border-[#DDA7A5] hover:text-[#110E0E] transition-all duration-300 rounded"
+                      className="mt-auto w-full py-3 text-center border border-[#DDA7A5] text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.2em] hover:bg-[#DDA7A5] hover:text-white transition-all duration-300 rounded-lg"
                     >
                       Order Now
                     </a>
@@ -154,28 +136,28 @@ export default function Home() {
             )}
 
             <div className="mt-16 flex justify-center reveal-text pb-6">
-              <Link href="/shop" className="group relative px-10 py-4 overflow-hidden rounded-full border border-white/20 bg-transparent text-white text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:border-[#D1A3FF]">
-                <span className="relative z-10 group-hover:text-black transition-colors duration-500">View Full Collection</span>
-                <div className="absolute inset-0 h-full w-full scale-0 rounded-full bg-[#D1A3FF] transition-transform duration-500 group-hover:scale-100 z-0"></div>
+              <Link href="/shop" className="group relative px-10 py-4 overflow-hidden rounded-full border border-[#DDA7A5] bg-transparent text-[#DDA7A5] text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:text-white">
+                <span className="relative z-10">View Full Collection</span>
+                <div className="absolute inset-0 h-full w-full scale-0 rounded-full bg-[#DDA7A5] transition-transform duration-500 group-hover:scale-100 z-0"></div>
               </Link>
             </div>
-
           </div>
         </section>
 
-        <footer className="border-t border-white/10 bg-[#030105] py-16 px-6 pointer-events-auto">
+        {/* --- FOOTER --- */}
+        <footer className="border-t border-gray-200 bg-white py-16 px-6">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="text-center md:text-left flex flex-col items-center md:items-start">
-              <img src="/logo.png" alt="Ayesha's Signature" className="h-10 w-auto object-contain mb-4 opacity-80" onError={(e) => e.target.style.display='none'} />
-              <h2 className="font-serif font-bold text-lg tracking-wide mb-1">Ayesha's Signature</h2>
-              <p className="text-[10px] opacity-50 tracking-[0.2em] uppercase">Elegance in every thread.</p>
+              <img src="/logo.png" alt="Ayesha's Signature" className="h-10 w-auto object-contain mb-4" onError={(e) => e.target.style.display='none'} />
+              <h2 className="font-serif font-bold text-lg tracking-wide mb-1 text-[#2C2424]">Ayesha's Signature</h2>
+              <p className="text-[10px] opacity-60 tracking-[0.2em] uppercase">Elegance in every thread.</p>
             </div>
             <div className="flex gap-8 text-[10px] font-bold tracking-[0.2em] uppercase opacity-70">
-              <a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#D1A3FF] transition-colors">TikTok</a>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#D1A3FF] transition-colors">WhatsApp</a>
+              <a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#DDA7A5] transition-colors">TikTok</a>
+              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#DDA7A5] transition-colors">WhatsApp</a>
             </div>
           </div>
-          <div className="max-w-7xl mx-auto mt-12 text-center text-[9px] opacity-30 tracking-[0.3em] uppercase">
+          <div className="max-w-7xl mx-auto mt-12 text-center text-[9px] opacity-40 tracking-[0.3em] uppercase">
             &copy; {new Date().getFullYear()} Ayesha's Signature. All Rights Reserved.
           </div>
         </footer>

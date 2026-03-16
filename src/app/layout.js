@@ -1,11 +1,10 @@
 import './globals.css';
-import LoadingScreen from '@/components/LoadingScreen';
 
-// === THIS IS THE MAGIC WHATSAPP / INSTAGRAM SEO CODE ===
 export const metadata = {
-  title: "Ayesha's Signature | Premium Hijabs & Custom Prayer Mats",
-  description: "Discover luxury Islamic gifts, premium hijabs, personalized prayer mats, and bespoke Ramadan packages. Elegance in every thread. Order online today.",
-  keywords: "premium hijab, custom prayer mat, islamic gifts, ramadan packages, luxury hijab brand, ayeshas signature",
+  title: "Ayesha's Signature | Modest Fashion & Luxury Gifting",
+  description: "Discover luxury Islamic gifts, premium hijabs, personalized prayer mats, and bespoke packages. Elegance in every thread.",
+  keywords: "premium hijab, custom prayer mat, islamic gifts, luxury hijab brand, ayeshas signature",
+  verification: { google: 'uJqyy3dEAeN5EGOW9KvI1ytzqgdOMw8TZQAjv4K3x0kE' },
   openGraph: {
     title: "Ayesha's Signature | Luxury Islamic Gifts",
     description: "Elegance in every thread. Explore our premium collection.",
@@ -20,16 +19,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      {/* ADDED THE RAW HTML TAG EXACTLY HOW YOU ARE USED TO DOING IT! */}
-      <head>
-        <meta name="google-site-verification" content="uJqyy3dEAeN5EGOW9KvI1ytzqgdOMw8TZQAjv4K3x0k" />
-      </head>
-      
-      <body className="antialiased bg-[#090212] text-white">
-        
-        {/* The Loading Screen will now perfectly protect every page on the site! */}
-        <LoadingScreen />
-        
+      {/* CHANGED TO LIGHT MODE: Cream background, dark elegant text */}
+      <body className="antialiased bg-[#FAF9F6] text-[#2C2424]">
         {children}
       </body>
     </html>

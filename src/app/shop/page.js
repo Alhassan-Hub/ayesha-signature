@@ -6,7 +6,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, ContactShadows, useGLTF, Center } from '@react-three/drei';
 import * as THREE from 'three';
 import CustomizerModal from '@/components/CustomizerModal';
-import GlobalCanvas from '@/components/GlobalCanvas';
 import Link from 'next/link';
 
 const modelConfigs = {
@@ -28,10 +27,8 @@ function CarouselItem({ file, isCurrent, config }) {
     const targetScale = isCurrent ? config.scale : 0;
     const currentScale = groupRef.current.scale.x;
     const nextScale = THREE.MathUtils.lerp(currentScale, targetScale, delta * 5);
-    
     groupRef.current.scale.set(nextScale, nextScale, nextScale);
     groupRef.current.visible = nextScale > 0.01;
-
     if (isCurrent) groupRef.current.rotation.y += delta * 0.4; 
     else groupRef.current.rotation.y = 0; 
   });
@@ -50,9 +47,13 @@ function CarouselItem({ file, isCurrent, config }) {
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Modals State
   const [activeCustomizer, setActiveCustomizer] = useState(null); 
+  const [quickViewProduct, setQuickViewProduct] = useState(null); // NEW: For Product Details
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Cart State
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
@@ -77,10 +78,10 @@ export default function ShopPage() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (!activeCustomizer) setCurrentIndex((prev) => (prev + 1) % customItems.length);
+      if (!activeCustomizer && !quickViewProduct) setCurrentIndex((prev) => (prev + 1) % customItems.length);
     }, 8000); 
     return () => clearInterval(timer);
-  }, [customItems.length, activeCustomizer]);
+  }, [customItems.length, activeCustomizer, quickViewProduct]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -101,12 +102,12 @@ export default function ShopPage() {
       if (existingItem) return prevCart.map((item) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
       return [...prevCart, { ...product, qty: 1 }];
     });
+    setQuickViewProduct(null); // Close details modal when added
     setIsCartOpen(true); 
   };
 
   const removeFromCart = (productId) => setCart((prevCart) => prevCart.filter(item => item.id !== productId));
 
-  // NEW: UPDATED CART CHECKOUT (Includes Image URLs and Bullet points)
   const checkoutViaWhatsApp = () => {
     if (cart.length === 0) return;
     const itemList = cart.map(item => `▪ ${item.qty}x *${item.name}*\nImage: ${item.imageUrl}`).join('\n\n');
@@ -114,86 +115,133 @@ export default function ShopPage() {
     window.open(`https://wa.me/23272273689?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  return (
-    <main className="min-h-screen bg-[#090212] text-[#FDFBFF] font-sans overflow-x-hidden relative">
-      <GlobalCanvas />
-      <div className="absolute inset-0 bg-[#0A0808]/70 z-0 pointer-events-none" />
+  const checkoutSingleItem = (product) => {
+    const msg = `Hello Ayesha! I would like to instantly order this item:\n\n*${product.name}*\n${product.price ? `Price: ${product.price}\n` : ''}Image: ${product.imageUrl}`;
+    window.open(`https://wa.me/23272273689?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
-      <nav className="fixed top-0 w-full z-40 bg-transparent pointer-events-auto mix-blend-difference">
-        <div className="max-w-7xl mx-auto px-6 py-8 flex items-center justify-between relative">
-          <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-white transition-colors flex items-center gap-2 z-10">
+  return (
+    // LIGHT THEME BACKGROUND
+    <main className="min-h-screen bg-[#FAF9F6] text-[#2C2424] font-sans overflow-x-hidden relative">
+      
+      {/* NAVIGATION */}
+      <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative">
+          <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors flex items-center gap-2 z-10">
             <span>←</span> Back
           </Link>
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <Link href="/" className="font-serif font-bold text-[14px] tracking-[0.2em] text-[#FDF8F5] uppercase">Ayesha's Signature</Link>
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" className="h-6 w-auto" onError={(e)=>e.target.style.display='none'}/>
+            <Link href="/" className="font-serif font-bold text-xs md:text-sm tracking-[0.2em] text-[#2C2424] uppercase">Ayesha's Signature</Link>
           </div>
           <div className="w-16 hidden md:block"></div>
         </div>
       </nav>
 
-      <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-        </svg>
+      {/* FLOATING CART BUTTON */}
+      <button onClick={() => setIsCartOpen(true)} className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 w-14 h-14 bg-[#2C2424] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 transition-transform">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
         {isCartLoaded && cart.length > 0 && (
-          <span className="absolute -top-1 -right-1 bg-[#DDA7A5] text-black text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+          <span className="absolute -top-1 -right-1 bg-[#DDA7A5] text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md">
             {cart.reduce((total, item) => total + item.qty, 0)}
           </span>
         )}
       </button>
 
-      <div className={`fixed inset-y-0 right-0 w-full md:w-[400px] bg-[#0A0808]/95 backdrop-blur-3xl z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col shadow-2xl border-l border-white/10 ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex justify-between items-center p-6 border-b border-white/10">
-          <h2 className="font-serif font-bold text-xl text-white">Your Bag</h2>
-          <button onClick={() => setIsCartOpen(false)} className="text-white/50 hover:text-white text-sm uppercase tracking-widest font-bold">Close ✕</button>
+      {/* CART DRAWER */}
+      <div className={`fixed inset-y-0 right-0 w-full md:w-[400px] bg-white z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.1)] ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+          <h2 className="font-serif font-bold text-xl text-[#2C2424]">Your Bag</h2>
+          <button onClick={() => setIsCartOpen(false)} className="text-gray-400 hover:text-black text-sm uppercase tracking-widest font-bold">Close ✕</button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
           {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-white/40">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mb-4 opacity-50">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-              </svg>
+            <div className="flex flex-col items-center justify-center h-full text-gray-300">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 mb-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
               <p className="text-[10px] uppercase tracking-[0.2em]">Your bag is empty.</p>
             </div>
           ) : (
             cart.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
-                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-md" />
+              <div key={item.id} className="flex items-center gap-4 bg-[#FAF9F6] p-3 rounded-xl border border-gray-100">
+                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded shadow-sm" />
                 <div className="flex-1">
-                  <h3 className="text-sm font-serif font-bold text-white line-clamp-1">{item.name}</h3>
+                  <h3 className="text-sm font-serif font-bold text-[#2C2424] line-clamp-1">{item.name}</h3>
                   <p className="text-[10px] text-[#DDA7A5] tracking-widest mt-1">Qty: {item.qty}</p>
                 </div>
-                <button onClick={() => removeFromCart(item.id)} className="text-white/40 hover:text-red-400 text-xs font-bold px-2">✕</button>
+                <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500 text-xs font-bold px-2">✕</button>
               </div>
             ))
           )}
         </div>
         {cart.length > 0 && (
-          <div className="p-6 border-t border-white/10 bg-black/50">
-            <button onClick={checkoutViaWhatsApp} className="w-full py-5 bg-[#FDF8F5] text-black font-bold text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-[#DDA7A5] hover:text-white transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+          <div className="p-6 border-t border-gray-100 bg-white">
+            <button onClick={checkoutViaWhatsApp} className="w-full py-4 bg-[#2C2424] text-white font-bold text-[10px] uppercase tracking-[0.3em] rounded-full hover:bg-[#DDA7A5] transition-all shadow-lg">
               Checkout via WhatsApp
             </button>
           </div>
         )}
       </div>
 
-      <div className="relative w-full h-screen flex flex-col items-center justify-center z-10">
+      {/* --- NEW: PRODUCT DETAILS QUICK VIEW MODAL --- */}
+      {quickViewProduct && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+          {/* Click background to close */}
+          <div className="absolute inset-0" onClick={() => setQuickViewProduct(null)}></div>
+          
+          <div className="relative w-full sm:max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
+            <button onClick={() => setQuickViewProduct(null)} className="absolute top-4 right-6 z-10 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-black">✕</button>
+            
+            <div className="flex flex-col sm:flex-row max-h-[85vh] overflow-y-auto">
+              <div className="w-full sm:w-1/2 aspect-square sm:aspect-auto bg-gray-50 relative">
+                <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="absolute inset-0 w-full h-full object-cover" />
+              </div>
+              <div className="w-full sm:w-1/2 p-8 flex flex-col">
+                <p className="text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] mb-2">Ayesha's Signature</p>
+                <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2">{quickViewProduct.name}</h2>
+                <p className="text-sm text-gray-500 mb-6">{quickViewProduct.price}</p>
+                
+                <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
+                
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">The Details</h3>
+                <p className="text-sm text-gray-600 leading-relaxed mb-8 font-light">
+                  Crafted with uncompromising attention to detail, this piece represents the pinnacle of modest luxury. Designed to elevate your daily rituals with elegance, grace, and timeless style.
+                </p>
+
+                <div className="mt-auto flex flex-col gap-3 pt-4 border-t border-gray-100">
+                  <button onClick={() => checkoutSingleItem(quickViewProduct)} className="w-full py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
+                    Buy Now
+                  </button>
+                  <button onClick={() => addToCart(quickViewProduct)} className="w-full py-4 border border-[#DDA7A5] text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-gray-50 transition-all">
+                    Add to Bag
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULL SCREEN 3D EXPERIENCE (LIGHT THEME) */}
+      <div className="relative w-full h-screen flex flex-col items-center justify-center z-10 bg-[#FAF9F6]">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
-          <span className="text-[#DDA7A5] text-[10px] font-semibold uppercase tracking-[0.4em]">{activeItem.tag}</span>
-          <h1 className="text-3xl md:text-4xl font-serif mt-4 text-[#FDF8F5] tracking-widest font-light drop-shadow-lg transition-all duration-500">{activeItem.title}</h1>
+          <span className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white">
+            {activeItem.tag}
+          </span>
+          <h1 className="text-3xl md:text-5xl font-serif mt-6 text-[#2C2424] tracking-widest transition-all duration-500">{activeItem.title}</h1>
         </div>
 
         {!activeCustomizer && (
           <div className="absolute inset-0 w-full h-full z-10 pointer-events-none animate-in fade-in duration-700">
             <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-[#DDA7A5] text-[10px] uppercase tracking-widest">Loading 3D Studio...</div>}>
               <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
-                <ambientLight intensity={1.5} color="#FFF5F0" />
-                <spotLight position={[5, 10, 5]} intensity={2.5} color="#DDA7A5" />
-                <Environment preset="studio" />
+                <ambientLight intensity={2} color="#FFFFFF" />
+                <spotLight position={[5, 10, 5]} intensity={1.5} color="#DDA7A5" />
+                {/* Changed environment to sunset for better light mode reflections */}
+                <Environment preset="sunset" />
                 {customItems.map((item, index) => (
                   <CarouselItem key={item.id} file={item.file} isCurrent={currentIndex === index} config={modelConfigs[item.id]} />
                 ))}
-                <ContactShadows position={[0, -1.8, 0]} opacity={0.6} scale={15} blur={2.5} far={4} color="#000000" />
+                <ContactShadows position={[0, -1.8, 0]} opacity={0.3} scale={15} blur={2.5} far={4} color="#DDA7A5" />
               </Canvas>
             </Suspense>
           </div>
@@ -202,59 +250,53 @@ export default function ShopPage() {
         <div className="absolute bottom-20 w-full flex flex-col items-center gap-6 z-20 pointer-events-none">
           <button 
             onClick={() => setActiveCustomizer({ ...activeItem, config: modelConfigs[activeItem.id] })}
-            className="pointer-events-auto px-12 py-4 bg-white text-black text-[10px] uppercase tracking-[0.3em] font-bold rounded-full hover:bg-[#DDA7A5] hover:text-white transition-colors duration-500 shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+            className="pointer-events-auto px-10 py-4 bg-[#DDA7A5] text-white text-[10px] uppercase tracking-[0.3em] font-bold rounded-full hover:bg-[#D4AF37] transition-all duration-500 shadow-xl"
           >
             Customize in 3D
           </button>
           <div className="flex items-center gap-3">
             {customItems.map((_, idx) => (
-              <div key={idx} className={`h-[2px] transition-all duration-700 ease-in-out rounded-full pointer-events-auto cursor-pointer ${currentIndex === idx ? 'w-8 bg-[#DDA7A5]' : 'w-3 bg-white/20 hover:bg-white/50'}`} onClick={() => setCurrentIndex(idx)} />
+              <div key={idx} className={`h-[2px] transition-all duration-700 ease-in-out rounded-full pointer-events-auto cursor-pointer ${currentIndex === idx ? 'w-8 bg-[#DDA7A5]' : 'w-3 bg-gray-300 hover:bg-gray-400'}`} onClick={() => setCurrentIndex(idx)} />
             ))}
           </div>
         </div>
       </div>
 
+      {/* FIREBASE GRID (LIGHT THEME) */}
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-20 relative z-10 pb-32">
-        <div className="mb-12 border-b border-white/10 pb-6 flex items-end justify-between">
+        <div className="mb-12 border-b border-gray-200 pb-6 flex items-end justify-between">
           <div>
             <p className="text-[#DDA7A5] text-[9px] font-bold tracking-[0.4em] uppercase mb-3">Ready to ship</p>
-            <h2 className="text-3xl md:text-4xl font-serif text-[#FDF8F5]">Standard Collection</h2>
+            <h2 className="text-3xl md:text-4xl font-serif text-[#2C2424]">Standard Collection</h2>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="text-center py-32"><p className="opacity-40 uppercase tracking-[0.3em] text-[10px]">Curating pieces...</p></div>
+          <div className="text-center py-32"><p className="text-gray-400 uppercase tracking-[0.3em] text-[10px]">Curating pieces...</p></div>
         ) : products.length === 0 ? (
-          <div className="text-center py-32"><p className="opacity-40 uppercase tracking-[0.3em] text-[10px]">Inventory is empty.</p></div>
+          <div className="text-center py-32"><p className="text-gray-400 uppercase tracking-[0.3em] text-[10px]">Inventory is empty.</p></div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 gap-y-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 gap-y-12">
             {products.map((product) => (
-              <div key={product.id} className="group flex flex-col pointer-events-auto">
-                <div className="relative w-full aspect-[4/5] overflow-hidden rounded-sm bg-[#111] mb-4">
-                  <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100" />
-                </div>
-                <h3 className="text-xs font-serif text-white mb-1 group-hover:text-[#DDA7A5] transition-colors line-clamp-1">{product.name}</h3>
-                {product.price && <p className="text-[9px] tracking-widest opacity-50 mb-4">{product.price}</p>}
+              <div key={product.id} className="group flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all">
                 
-                {/* NEW: SINGLE ITEM INSTANT BUY (WITH IMAGE URL) */}
-                <div className="mt-auto flex flex-col gap-2 pt-2">
-                  <button 
-                    onClick={() => {
-                      const msg = `Hello Ayesha! I would like to order this item:\n\n*${product.name}*\n${product.price ? `Price: ${product.price}\n` : ''}Image: ${product.imageUrl}`;
-                      window.open(`https://wa.me/23272273689?text=${encodeURIComponent(msg)}`, '_blank');
-                    }}
-                    className="w-full py-3 text-center bg-[#FDF8F5] text-black text-[9px] font-bold uppercase tracking-[0.2em] rounded shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:bg-[#DDA7A5] hover:text-white transition-all duration-300"
-                  >
+                {/* Clicking image or text opens Quick View! */}
+                <div className="cursor-pointer" onClick={() => setQuickViewProduct(product)}>
+                  <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-gray-50 mb-4">
+                    <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105" />
+                  </div>
+                  <h3 className="text-xs font-serif text-[#2C2424] mb-1 group-hover:text-[#DDA7A5] transition-colors line-clamp-1 px-1">{product.name}</h3>
+                  {product.price && <p className="text-[10px] tracking-widest text-gray-400 mb-4 px-1">{product.price}</p>}
+                </div>
+                
+                <div className="mt-auto flex gap-2 pt-2 border-t border-gray-50">
+                  <button onClick={() => checkoutSingleItem(product)} className="flex-1 py-3 text-center bg-[#FDF8F5] text-[#2C2424] text-[8px] font-bold uppercase tracking-[0.1em] rounded hover:bg-[#DDA7A5] hover:text-white transition-all">
                     Buy Now
                   </button>
-                  <button 
-                    onClick={() => addToCart(product)}
-                    className="w-full py-3 text-center border border-white/10 text-white text-[9px] font-bold uppercase tracking-[0.2em] rounded hover:bg-white/10 hover:border-white/30 transition-all duration-300"
-                  >
-                    Add to Bag
+                  <button onClick={() => addToCart(product)} className="w-10 flex items-center justify-center border border-gray-200 text-gray-500 rounded hover:bg-gray-50 hover:text-[#DDA7A5] transition-all">
+                    +
                   </button>
                 </div>
-
               </div>
             ))}
           </div>
