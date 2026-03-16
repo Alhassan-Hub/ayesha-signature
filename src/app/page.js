@@ -83,7 +83,7 @@ export default function Home() {
   }, [isLoading]);
 
   return (
-    <main className="relative w-full overflow-hidden font-sans bg-[#FAF9F6] text-[#2C2424]">
+    <main className="relative w-full overflow-hidden font-sans bg-[#FDF8F5] text-[#2C2424]">
       
       <Navbar />
 

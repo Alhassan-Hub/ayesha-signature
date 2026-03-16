@@ -19,11 +19,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-[#FAF9F6] text-[#2C2424]">
+      {/* THE FIX: Deepened the global background color to #FDF8F5 so Android sees it! */}
+      <body className="antialiased bg-[#FDF8F5] text-[#2C2424]">
         
         {children}
 
-        {/* FLOATING WHATSAPP BUTTON (Kept exactly where it was) */}
+        {/* FLOATING WHATSAPP BUTTON */}
         <a 
           href="https://wa.me/23272273689?text=Hello%20Ayesha!" 
           target="_blank" 

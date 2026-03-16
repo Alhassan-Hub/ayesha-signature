@@ -5,7 +5,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, ContactShadows, useGLTF, Center, PresentationControls } from '@react-three/drei';
 import * as THREE from 'three';
-import Link from 'next/link'; // Customizer is officially gone!
+import Link from 'next/link';
 
 const modelConfigs = {
   'magic-cup': { scale: 1.7, position: [0, 0, 0], rotation: [0, 0, 0] },
@@ -17,7 +17,6 @@ useGLTF.preload('/cup.glb');
 useGLTF.preload('/mat.glb');
 useGLTF.preload('/hijab.glb');
 
-// THE 3D CAROUSEL (Still alive and sliding perfectly!)
 function CarouselItem({ file, isCurrent, config }) {
   const { scene } = useGLTF(file);
   const groupRef = useRef();
@@ -27,10 +26,8 @@ function CarouselItem({ file, isCurrent, config }) {
     const targetScale = isCurrent ? config.scale : 0;
     const currentScale = groupRef.current.scale.x;
     const nextScale = THREE.MathUtils.lerp(currentScale, targetScale, delta * 5);
-    
     groupRef.current.scale.set(nextScale, nextScale, nextScale);
     groupRef.current.visible = nextScale > 0.01;
-
     if (isCurrent) groupRef.current.rotation.y += delta * 0.4; 
     else groupRef.current.rotation.y = 0; 
   });
@@ -68,9 +65,9 @@ export default function ShopPage() {
   }, [cart, isCartLoaded]);
 
   const customItems = [
-    { id: 'magic-cup', title: 'The Magic Cup', tag: 'Signature Piece', file: '/cup.glb' },
-    { id: 'prayer-mat', title: 'Premium Prayer Mat', tag: 'Luxury Essential', file: '/mat.glb' },
-    { id: 'signature-hijab', title: 'Signature Hijab', tag: 'Everyday Elegance', file: '/hijab.glb' }
+    { id: 'magic-cup', title: 'The Magic Cup', tag: 'Personalized Engraving', file: '/cup.glb' },
+    { id: 'prayer-mat', title: 'Premium Prayer Mat', tag: 'Custom Engraving', file: '/mat.glb' },
+    { id: 'signature-hijab', title: 'Signature Hijab', tag: 'Color Selection', file: '/hijab.glb' }
   ];
 
   const activeItem = customItems[currentIndex];
@@ -120,10 +117,11 @@ export default function ShopPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FAF9F6] text-[#2C2424] font-sans overflow-x-hidden relative">
+    // THE FIX: Changed bg to the warmer #FDF8F5
+    <main className="min-h-screen bg-[#FDF8F5] text-[#2C2424] font-sans overflow-x-hidden relative">
       
-      {/* NAVIGATION */}
-      <nav className="fixed top-[32px] md:top-[36px] w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
+      {/* THE FIX: Navbar permanently locked to top-0 */}
+      <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative">
           <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors flex items-center gap-2 z-10">
             <span>←</span> Back
@@ -160,7 +158,7 @@ export default function ShopPage() {
             </div>
           ) : (
             cart.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 bg-[#FAF9F6] p-3 rounded-xl border border-gray-100">
+              <div key={item.id} className="flex items-center gap-4 bg-[#FDF8F5] p-3 rounded-xl border border-gray-100">
                 <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded shadow-sm" />
                 <div className="flex-1">
                   <h3 className="text-sm font-serif font-bold text-[#2C2424] line-clamp-1">{item.name}</h3>
@@ -182,19 +180,22 @@ export default function ShopPage() {
 
       {/* QUICK VIEW DETAILS MODAL */}
       {quickViewProduct && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="absolute inset-0" onClick={() => setQuickViewProduct(null)}></div>
           
           <div className="relative w-full sm:max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
             <button onClick={() => setQuickViewProduct(null)} className="absolute top-4 right-6 z-10 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-black">✕</button>
             
             <div className="flex flex-col sm:flex-row max-h-[85vh] overflow-y-auto">
-              <div className="w-full sm:w-1/2 aspect-square sm:aspect-auto bg-gray-50 relative">
-                <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="absolute inset-0 w-full h-full object-cover" />
+              
+              {/* THE FIX: Object-Contain ensures the image is never chopped off on Android! */}
+              <div className="w-full sm:w-1/2 h-[40vh] sm:h-auto bg-[#FDF8F5] relative p-6 flex justify-center items-center">
+                <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="max-w-full max-h-full object-contain rounded shadow-sm" />
               </div>
-              <div className="w-full sm:w-1/2 p-8 flex flex-col">
+
+              <div className="w-full sm:w-1/2 p-6 md:p-8 flex flex-col">
                 <p className="text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] mb-2">Ayesha's Signature</p>
-                <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2">{quickViewProduct.name}</h2>
+                <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2 leading-tight">{quickViewProduct.name}</h2>
                 <p className="text-sm text-gray-500 mb-6">{quickViewProduct.price}</p>
                 
                 <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
@@ -209,7 +210,7 @@ export default function ShopPage() {
                   }
                 </p>
 
-                <div className="bg-gray-50 p-4 rounded-xl mb-8 border border-gray-100">
+                <div className="bg-[#FDF8F5] p-4 rounded-xl mb-6 border border-gray-100">
                   <h4 className="text-[9px] font-bold uppercase tracking-widest text-[#2C2424] mb-3">Delivery & Policies</h4>
                   <ul className="text-xs text-gray-500 flex flex-col gap-2 font-light">
                     <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.</li>
@@ -218,12 +219,12 @@ export default function ShopPage() {
                   </ul>
                 </div>
 
-                <div className="mt-auto flex flex-col gap-3 pt-4 border-t border-gray-100">
-                  <button onClick={() => checkoutSingleItem(quickViewProduct)} className="w-full py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
+                <div className="mt-auto flex gap-3 pt-2">
+                  <button onClick={() => checkoutSingleItem(quickViewProduct)} className="flex-1 py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
                     Buy Now
                   </button>
-                  <button onClick={() => addToCart(quickViewProduct)} className="w-full py-4 border border-[#DDA7A5] text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-gray-50 transition-all">
-                    Add to Bag
+                  <button onClick={() => addToCart(quickViewProduct)} className="px-6 py-4 border border-[#DDA7A5] text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#FDF8F5] transition-all">
+                    + Bag
                   </button>
                 </div>
               </div>
@@ -232,8 +233,8 @@ export default function ShopPage() {
         </div>
       )}
 
-      {/* FULL SCREEN 3D EXPERIENCE (LIGHT THEME - LIGHTS ADJUSTED) */}
-      <div className="relative w-full h-[85vh] flex flex-col items-center justify-center z-10 bg-[#FAF9F6]">
+      {/* FULL SCREEN 3D EXPERIENCE */}
+      <div className="relative w-full h-[85vh] flex flex-col items-center justify-center z-10 bg-[#FDF8F5]">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
           <span className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white">
             {activeItem.tag}
@@ -244,7 +245,6 @@ export default function ShopPage() {
         <div className="absolute inset-0 w-full h-full z-10 pointer-events-none animate-in fade-in duration-700">
           <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-[#DDA7A5] text-[10px] uppercase tracking-widest">Loading Studio...</div>}>
             <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
-              {/* FIXED LIGHTING SO MODELS ARE CLEARLY VISIBLE AGAINST WHITE BG */}
               <ambientLight intensity={1.2} color="#ffffff" />
               <spotLight position={[5, 10, 5]} intensity={1.5} color="#DDA7A5" />
               <Environment preset="city" />
@@ -255,12 +255,12 @@ export default function ShopPage() {
                 ))}
               </PresentationControls>
 
-              <ContactShadows position={[0, -1.8, 0]} opacity={0.4} scale={15} blur={2.5} far={4} color="#2C2424" />
+              <ContactShadows position={[0, -1.8, 0]} opacity={0.3} scale={15} blur={2.5} far={4} color="#2C2424" />
             </Canvas>
           </Suspense>
         </div>
 
-        {/* DOTS ONLY (Customizer Button Removed) */}
+        {/* DOTS ONLY */}
         <div className="absolute bottom-16 w-full flex flex-col items-center gap-6 z-20 pointer-events-none">
           <div className="flex items-center gap-3">
             {customItems.map((_, idx) => (
@@ -289,7 +289,7 @@ export default function ShopPage() {
               <div key={product.id} className="group flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all">
                 
                 <div className="cursor-pointer" onClick={() => setQuickViewProduct(product)}>
-                  <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-gray-50 mb-4">
+                  <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-[#FDF8F5] mb-4">
                     <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-110" />
                   </div>
                   <h3 className="text-xs font-serif text-[#2C2424] mb-1 group-hover:text-[#DDA7A5] transition-colors line-clamp-1 px-1">{product.name}</h3>
