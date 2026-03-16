@@ -191,56 +191,63 @@ export default function ShopPage() {
           {/* Layer 1: The Dark Click-away Blur */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setQuickViewProduct(null)}></div>
           
-          {/* Layer 2: The actual White Card (Forced to be on top) */}
-          <div className="relative z-[210] w-full sm:max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col sm:flex-row max-h-[90vh]">
+          {/* Layer 2: The actual White Card (Now safely scrollable inside) */}
+          <div className="relative z-[210] w-full sm:max-w-3xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-8 duration-500">
             
             <button onClick={() => setQuickViewProduct(null)} className="absolute top-4 right-4 z-[220] w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-gray-500 hover:text-black shadow-sm border border-gray-100">
               ✕
             </button>
             
-            <div className="w-full sm:w-1/2 h-[40vh] sm:h-auto bg-[#FDF8F5] relative p-6 flex justify-center items-center">
-              <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="max-w-full max-h-full object-contain rounded drop-shadow-md" />
-            </div>
-            
-            <div className="w-full sm:w-1/2 p-6 md:p-8 flex flex-col overflow-y-auto">
-              <p className="text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] mb-2">Ayesha's Signature</p>
-              <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2 leading-tight">{quickViewProduct.name}</h2>
-              <p className="text-sm text-gray-500 mb-6">{quickViewProduct.price}</p>
+            {/* The Scrollable Inner Container (Prevents cutoff!) */}
+            <div className="overflow-y-auto w-full flex flex-col sm:flex-row rounded-t-[2rem] sm:rounded-[2rem]">
               
-              <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
+              {/* IMAGE: Fixed safe height on mobile so it doesn't crush the text */}
+              <div className="w-full sm:w-1/2 h-[350px] sm:h-auto bg-[#FDF8F5] relative p-6 flex justify-center items-center shrink-0">
+                <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="w-full h-full object-contain drop-shadow-md" />
+              </div>
               
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">The Details</h3>
-              <p className="text-sm text-gray-600 leading-relaxed mb-6 font-light">
-                {quickViewProduct.description ? quickViewProduct.description : 
-                  quickViewProduct.name.toLowerCase().includes('mat') ? "A premium silk prayer mat crafted for ultimate comfort and elegance during your daily Ibadah."
-                  : quickViewProduct.name.toLowerCase().includes('box') || quickViewProduct.name.toLowerCase().includes('bouquet') ? "A thoughtfully curated gift box featuring a selection of our finest essentials. The perfect intentional gift."
-                  : quickViewProduct.name.toLowerCase().includes('hijab') || quickViewProduct.name.toLowerCase().includes('scarf') ? "A beautiful, high-quality hijab scarf available in a variety of stunning colors. It drapes perfectly, offering effortless everyday elegance."
-                  : "A beautiful signature piece from our collection, crafted with care and perfect for your modest lifestyle."
-                }
-              </p>
+              {/* TEXT & BUTTONS */}
+              <div className="w-full sm:w-1/2 p-6 md:p-8 flex flex-col">
+                <p className="text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] mb-2">Ayesha's Signature</p>
+                <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2 leading-tight">{quickViewProduct.name}</h2>
+                <p className="text-sm text-gray-500 mb-6">{quickViewProduct.price}</p>
+                
+                <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
+                
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">The Details</h3>
+                <p className="text-sm text-gray-600 leading-relaxed mb-6 font-light">
+                  {quickViewProduct.description ? quickViewProduct.description : 
+                    /* SAFETY NET: Added optional chaining (?) to prevent Firebase crashes! */
+                    (quickViewProduct?.name || '').toLowerCase().includes('mat') ? "A premium silk prayer mat crafted for ultimate comfort and elegance during your daily Ibadah."
+                    : (quickViewProduct?.name || '').toLowerCase().includes('box') || (quickViewProduct?.name || '').toLowerCase().includes('bouquet') ? "A thoughtfully curated gift box featuring a selection of our finest essentials. The perfect intentional gift."
+                    : (quickViewProduct?.name || '').toLowerCase().includes('hijab') || (quickViewProduct?.name || '').toLowerCase().includes('scarf') ? "A beautiful, high-quality hijab scarf available in a variety of stunning colors. It drapes perfectly, offering effortless everyday elegance."
+                    : "A beautiful signature piece from our collection, crafted with care and perfect for your modest lifestyle."
+                  }
+                </p>
 
-              <div className="bg-[#FDF8F5] p-4 rounded-xl mb-6 border border-gray-100">
-                <h4 className="text-[9px] font-bold uppercase tracking-widest text-[#2C2424] mb-3">Delivery & Policies</h4>
-                <ul className="text-xs text-gray-500 flex flex-col gap-2 font-light">
-                  <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.</li>
-                  <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.</li>
-                  <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Secure packaging to ensure pristine condition.</li>
-                </ul>
+                <div className="bg-[#FDF8F5] p-4 rounded-xl mb-6 border border-gray-100">
+                  <h4 className="text-[9px] font-bold uppercase tracking-widest text-[#2C2424] mb-3">Delivery & Policies</h4>
+                  <ul className="text-xs text-gray-500 flex flex-col gap-2 font-light">
+                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.</li>
+                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.</li>
+                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Secure packaging to ensure pristine condition.</li>
+                  </ul>
+                </div>
+
+                <div className="mt-auto flex gap-3 pt-2 pb-4">
+                  <button onClick={() => checkoutSingleItem(quickViewProduct)} className="flex-1 py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
+                    Buy Now
+                  </button>
+                  <button onClick={() => addToCart(quickViewProduct)} className="px-6 py-4 border border-[#DDA7A5] text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#FDF8F5] transition-all">
+                    + Bag
+                  </button>
+                </div>
               </div>
 
-              <div className="mt-auto flex gap-3 pt-2">
-                <button onClick={() => checkoutSingleItem(quickViewProduct)} className="flex-1 py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
-                  Buy Now
-                </button>
-                <button onClick={() => addToCart(quickViewProduct)} className="px-6 py-4 border border-[#DDA7A5] text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#FDF8F5] transition-all">
-                  + Bag
-                </button>
-              </div>
             </div>
           </div>
         </div>
       )}
-
       {/* FULL SCREEN 3D EXPERIENCE */}
       <div className="relative w-full h-[85vh] flex flex-col items-center justify-center z-10 bg-[#FAF9F6] pt-16">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
