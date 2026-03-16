@@ -37,3 +37,11 @@ html {
   0%, 100% { top: 0%; }
   50% { top: 100%; }
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

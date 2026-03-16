@@ -5,8 +5,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, ContactShadows, useGLTF, Center, PresentationControls } from '@react-three/drei';
 import * as THREE from 'three';
-import CustomizerModal from '@/components/CustomizerModal';
-import Link from 'next/link';
+import Link from 'next/link'; // Customizer is officially gone!
 
 const modelConfigs = {
   'magic-cup': { scale: 1.7, position: [0, 0, 0], rotation: [0, 0, 0] },
@@ -18,6 +17,7 @@ useGLTF.preload('/cup.glb');
 useGLTF.preload('/mat.glb');
 useGLTF.preload('/hijab.glb');
 
+// THE 3D CAROUSEL (Still alive and sliding perfectly!)
 function CarouselItem({ file, isCurrent, config }) {
   const { scene } = useGLTF(file);
   const groupRef = useRef();
@@ -27,8 +27,10 @@ function CarouselItem({ file, isCurrent, config }) {
     const targetScale = isCurrent ? config.scale : 0;
     const currentScale = groupRef.current.scale.x;
     const nextScale = THREE.MathUtils.lerp(currentScale, targetScale, delta * 5);
+    
     groupRef.current.scale.set(nextScale, nextScale, nextScale);
     groupRef.current.visible = nextScale > 0.01;
+
     if (isCurrent) groupRef.current.rotation.y += delta * 0.4; 
     else groupRef.current.rotation.y = 0; 
   });
@@ -48,7 +50,6 @@ export default function ShopPage() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const [activeCustomizer, setActiveCustomizer] = useState(null); 
   const [quickViewProduct, setQuickViewProduct] = useState(null); 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -67,19 +68,19 @@ export default function ShopPage() {
   }, [cart, isCartLoaded]);
 
   const customItems = [
-    { id: 'magic-cup', title: 'The Magic Cup', tag: 'Personalized Engraving', file: '/cup.glb' },
-    { id: 'prayer-mat', title: 'Premium Prayer Mat', tag: 'Custom Engraving', file: '/mat.glb' },
-    { id: 'signature-hijab', title: 'Signature Hijab', tag: 'Color Selection', file: '/hijab.glb' }
+    { id: 'magic-cup', title: 'The Magic Cup', tag: 'Signature Piece', file: '/cup.glb' },
+    { id: 'prayer-mat', title: 'Premium Prayer Mat', tag: 'Luxury Essential', file: '/mat.glb' },
+    { id: 'signature-hijab', title: 'Signature Hijab', tag: 'Everyday Elegance', file: '/hijab.glb' }
   ];
 
   const activeItem = customItems[currentIndex];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (!activeCustomizer && !quickViewProduct) setCurrentIndex((prev) => (prev + 1) % customItems.length);
+      if (!quickViewProduct) setCurrentIndex((prev) => (prev + 1) % customItems.length);
     }, 8000); 
     return () => clearInterval(timer);
-  }, [customItems.length, activeCustomizer, quickViewProduct]);
+  }, [customItems.length, quickViewProduct]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -121,9 +122,8 @@ export default function ShopPage() {
   return (
     <main className="min-h-screen bg-[#FAF9F6] text-[#2C2424] font-sans overflow-x-hidden relative">
       
-      {/* NAVIGATION - Pushed down slightly to account for the Global Announcement Bar */}
-      {/* NAVIGATION - Perfectly fixed to the top now! */}
-      <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
+      {/* NAVIGATION */}
+      <nav className="fixed top-[32px] md:top-[36px] w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative">
           <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors flex items-center gap-2 z-10">
             <span>←</span> Back
@@ -180,7 +180,7 @@ export default function ShopPage() {
         )}
       </div>
 
-      {/* PRODUCT DETAILS QUICK VIEW MODAL */}
+      {/* QUICK VIEW DETAILS MODAL */}
       {quickViewProduct && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="absolute inset-0" onClick={() => setQuickViewProduct(null)}></div>
@@ -199,18 +199,16 @@ export default function ShopPage() {
                 
                 <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
                 
-                {/* SMART TEXT DESCRIPTIONS */}
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">The Details</h3>
                 <p className="text-sm text-gray-600 leading-relaxed mb-6 font-light">
                   {quickViewProduct.description ? quickViewProduct.description : 
-                    quickViewProduct.name.toLowerCase().includes('mat') ? "A premium silk prayer mat that you can beautifully customize with your name. Designed for ultimate comfort and elegance during your daily Ibadah."
-                    : quickViewProduct.name.toLowerCase().includes('box') || quickViewProduct.name.toLowerCase().includes('bouquet') ? "A thoughtfully curated gift box featuring a selection of our finest essentials. The exact items vary, ensuring a unique and beautiful unboxing experience every time."
+                    quickViewProduct.name.toLowerCase().includes('mat') ? "A premium silk prayer mat crafted for ultimate comfort and elegance during your daily Ibadah."
+                    : quickViewProduct.name.toLowerCase().includes('box') || quickViewProduct.name.toLowerCase().includes('bouquet') ? "A thoughtfully curated gift box featuring a selection of our finest essentials. The perfect intentional gift."
                     : quickViewProduct.name.toLowerCase().includes('hijab') || quickViewProduct.name.toLowerCase().includes('scarf') ? "A beautiful, high-quality hijab scarf available in a variety of stunning colors. It drapes perfectly, offering effortless everyday elegance."
                     : "A beautiful signature piece from our collection, crafted with care and perfect for your modest lifestyle."
                   }
                 </p>
 
-                {/* DELIVERY & POLICIES */}
                 <div className="bg-gray-50 p-4 rounded-xl mb-8 border border-gray-100">
                   <h4 className="text-[9px] font-bold uppercase tracking-widest text-[#2C2424] mb-3">Delivery & Policies</h4>
                   <ul className="text-xs text-gray-500 flex flex-col gap-2 font-light">
@@ -234,8 +232,8 @@ export default function ShopPage() {
         </div>
       )}
 
-      {/* FULL SCREEN 3D EXPERIENCE */}
-      <div className="relative w-full h-screen flex flex-col items-center justify-center z-10 bg-[#FAF9F6]">
+      {/* FULL SCREEN 3D EXPERIENCE (LIGHT THEME - LIGHTS ADJUSTED) */}
+      <div className="relative w-full h-[85vh] flex flex-col items-center justify-center z-10 bg-[#FAF9F6]">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
           <span className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white">
             {activeItem.tag}
@@ -243,34 +241,27 @@ export default function ShopPage() {
           <h1 className="text-3xl md:text-5xl font-serif mt-6 text-[#2C2424] tracking-widest transition-all duration-500">{activeItem.title}</h1>
         </div>
 
-        {!activeCustomizer && (
-          <div className="absolute inset-0 w-full h-full z-10 pointer-events-none animate-in fade-in duration-700">
-            <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-[#DDA7A5] text-[10px] uppercase tracking-widest">Loading 3D Studio...</div>}>
-              <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
-                <ambientLight intensity={2} color="#FFFFFF" />
-                <spotLight position={[5, 10, 5]} intensity={1.5} color="#DDA7A5" />
-                <Environment preset="sunset" />
-                
-                {/* 3D ZOOM ENABLED HERE */}
-                <PresentationControls global zoom={1.5} config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }}>
-                  {customItems.map((item, index) => (
-                    <CarouselItem key={item.id} file={item.file} isCurrent={currentIndex === index} config={modelConfigs[item.id]} />
-                  ))}
-                </PresentationControls>
+        <div className="absolute inset-0 w-full h-full z-10 pointer-events-none animate-in fade-in duration-700">
+          <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-[#DDA7A5] text-[10px] uppercase tracking-widest">Loading Studio...</div>}>
+            <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
+              {/* FIXED LIGHTING SO MODELS ARE CLEARLY VISIBLE AGAINST WHITE BG */}
+              <ambientLight intensity={1.2} color="#ffffff" />
+              <spotLight position={[5, 10, 5]} intensity={1.5} color="#DDA7A5" />
+              <Environment preset="city" />
+              
+              <PresentationControls global zoom={1.5} config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }}>
+                {customItems.map((item, index) => (
+                  <CarouselItem key={item.id} file={item.file} isCurrent={currentIndex === index} config={modelConfigs[item.id]} />
+                ))}
+              </PresentationControls>
 
-                <ContactShadows position={[0, -1.8, 0]} opacity={0.3} scale={15} blur={2.5} far={4} color="#DDA7A5" />
-              </Canvas>
-            </Suspense>
-          </div>
-        )}
+              <ContactShadows position={[0, -1.8, 0]} opacity={0.4} scale={15} blur={2.5} far={4} color="#2C2424" />
+            </Canvas>
+          </Suspense>
+        </div>
 
-        <div className="absolute bottom-20 w-full flex flex-col items-center gap-6 z-20 pointer-events-none">
-          <button 
-            onClick={() => setActiveCustomizer({ ...activeItem, config: modelConfigs[activeItem.id] })}
-            className="pointer-events-auto px-10 py-4 bg-[#DDA7A5] text-white text-[10px] uppercase tracking-[0.3em] font-bold rounded-full hover:bg-[#D4AF37] transition-all duration-500 shadow-xl"
-          >
-            Customize in 3D
-          </button>
+        {/* DOTS ONLY (Customizer Button Removed) */}
+        <div className="absolute bottom-16 w-full flex flex-col items-center gap-6 z-20 pointer-events-none">
           <div className="flex items-center gap-3">
             {customItems.map((_, idx) => (
               <div key={idx} className={`h-[2px] transition-all duration-700 ease-in-out rounded-full pointer-events-auto cursor-pointer ${currentIndex === idx ? 'w-8 bg-[#DDA7A5]' : 'w-3 bg-gray-300 hover:bg-gray-400'}`} onClick={() => setCurrentIndex(idx)} />
@@ -280,7 +271,7 @@ export default function ShopPage() {
       </div>
 
       {/* FIREBASE GRID */}
-      <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-20 relative z-10 pb-32">
+      <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-10 relative z-10 pb-32">
         <div className="mb-12 border-b border-gray-200 pb-6 flex items-end justify-between">
           <div>
             <p className="text-[#DDA7A5] text-[9px] font-bold tracking-[0.4em] uppercase mb-3">Ready to ship</p>
@@ -318,10 +309,6 @@ export default function ShopPage() {
           </div>
         )}
       </div>
-
-      {activeCustomizer && (
-        <CustomizerModal product={activeCustomizer} onClose={() => setActiveCustomizer(null)} />
-      )}
     </main>
   );
 }

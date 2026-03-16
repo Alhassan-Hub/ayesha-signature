@@ -150,7 +150,67 @@ export default function Home() {
             </div>
           </div>
         </section>
+{/* --- CUSTOMER REVIEWS (CAROUSEL) --- */}
+        <section className="py-24 px-6 md:px-16 lg:px-24 bg-[#FDF8F5] border-y border-gray-200">
+          <div className="max-w-7xl mx-auto">
+            
+            <div className="mb-12 text-center reveal-text">
+              <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Client Love</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424]">What they say about us</h2>
+            </div>
 
+            {/* Horizontal Scrolling Container */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar reveal-text">
+              
+              {/* Review 1 */}
+              <div className="snap-center shrink-0 w-[85vw] md:w-[400px] bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-6">
+                <div className="flex text-[#D4AF37] text-lg">★★★★★</div>
+                <p className="text-gray-600 font-light leading-relaxed italic text-sm md:text-base flex-1">
+                  "The packaging was absolutely stunning. I ordered the Signature Box for my mother and it exceeded all expectations. The quality of the hijab is incredible."
+                </p>
+                <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                  <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold">F</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">Fatima S.</h4>
+                    <p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review 2 */}
+              <div className="snap-center shrink-0 w-[85vw] md:w-[400px] bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-6">
+                <div className="flex text-[#D4AF37] text-lg">★★★★★</div>
+                <p className="text-gray-600 font-light leading-relaxed italic text-sm md:text-base flex-1">
+                  "I requested a custom engraved prayer mat for my husband. It arrived perfectly on time and the detail is flawless. Will definitely be ordering my Ramadan gifts here."
+                </p>
+                <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                  <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold">M</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">Mariam K.</h4>
+                    <p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review 3 */}
+              <div className="snap-center shrink-0 w-[85vw] md:w-[400px] bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-6">
+                <div className="flex text-[#D4AF37] text-lg">★★★★★</div>
+                <p className="text-gray-600 font-light leading-relaxed italic text-sm md:text-base flex-1">
+                  "Alhamdulillah, finally a luxury modest brand that actually cares about the details. From the customer service to the fabric quality, everything is 10/10."
+                </p>
+                <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                  <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold">Z</div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">Zainab A.</h4>
+                    <p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+        
        {/* --- UPGRADED LUXURY FOOTER --- */}
         <footer className="border-t border-gray-200 bg-white pt-16 pb-8 px-6 mt-12">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
