@@ -10,14 +10,45 @@ import Link from 'next/link';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// THE REVIEWS DATA
+const reviews = [
+  {
+    text: `"The packaging was absolutely stunning. I ordered the Signature Box for my mother and it exceeded all expectations. The quality of the hijab is incredible."`,
+    name: "Fatima S.",
+    initial: "F"
+  },
+  {
+    text: `"I requested a custom engraved prayer mat for my husband. It arrived perfectly on time and the detail is flawless. Will definitely be ordering my Ramadan gifts here."`,
+    name: "Mariam K.",
+    initial: "M"
+  },
+  {
+    text: `"Alhamdulillah, finally a luxury modest brand that actually cares about the details. From the customer service to the fabric quality, everything is 10/10."`,
+    name: "Zainab A.",
+    initial: "Z"
+  }
+];
+
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-   const gridRef = useRef(null);
-   
+  const [activeReview, setActiveReview] = useState(0);
+
+  const storyLeftRef = useRef(null);
+  const storyRightRef = useRef(null);
+
   const WHATSAPP_URL = "https://wa.me/23272273689?text=Hello%20Ayesha!";
   const TIKTOK_URL = "https://www.tiktok.com/@ayeshassignature1";
-  
+
+  // Fading Review Timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveReview((prev) => (prev + 1) % reviews.length);
+    }, 6000); // Changes every 6 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  // Smooth Scroll
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
@@ -25,6 +56,7 @@ export default function Home() {
     return () => lenis.destroy();
   }, []);
 
+  // Fetch Products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -38,6 +70,7 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  // Parallax Animations
   useEffect(() => {
     if (!isLoading) {
       gsap.utils.toArray('.reveal-text').forEach((el) => {
@@ -50,7 +83,6 @@ export default function Home() {
   }, [isLoading]);
 
   return (
-    // LIGHT THEME: Soft Cream Background
     <main className="relative w-full overflow-hidden font-sans bg-[#FAF9F6] text-[#2C2424]">
       
       <Navbar />
@@ -79,7 +111,7 @@ export default function Home() {
               </Link>
             </div>
 
-           {/* Right: Elegant Founder Portrait */}
+            {/* Right: Elegant Founder Portrait */}
             <div className="w-full md:w-2/5 reveal-text mt-8 md:mt-0">
               <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
                 <img 
@@ -87,20 +119,17 @@ export default function Home() {
                   alt="Ayesha - Founder" 
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    // Fallback if the image name is wrong
                     e.target.src = "https://images.unsplash.com/photo-1589467332212-003661eb1a47?auto=format&fit=crop&q=80&w=800";
                   }}
                 />
-                {/* Subtle shadow at the bottom of the image for depth */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
             </div>
-           
 
           </div>
         </section>
 
-        {/* --- SCROLLING MARQUEE (Rose Gold) --- */}
+        {/* --- SCROLLING MARQUEE --- */}
         <section className="w-full py-5 overflow-hidden flex whitespace-nowrap bg-[#FDF8F5] border-y border-[#DDA7A5]/20 mt-16">
           <div className="animate-marquee flex gap-12 text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase items-center text-[#DDA7A5]">
             <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
@@ -120,7 +149,7 @@ export default function Home() {
             ) : products.length === 0 ? (
               <div className="text-center py-20"><p className="opacity-50 uppercase tracking-widest text-[10px]">No products featured yet.</p></div>
             ) : (
-              <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 gap-y-10">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 gap-y-10">
                 {products.map((product) => (
                   <div key={product.id} className="group cursor-pointer reveal-text flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-gray-50 mb-4">
@@ -150,72 +179,52 @@ export default function Home() {
             </div>
           </div>
         </section>
-{/* --- CUSTOMER REVIEWS (CAROUSEL) --- */}
-        <section className="py-24 px-6 md:px-16 lg:px-24 bg-[#FDF8F5] border-y border-gray-200">
-          <div className="max-w-7xl mx-auto">
+
+        {/* --- CUSTOMER REVIEWS (FADE TRANSITION) --- */}
+        <section className="py-24 px-6 md:px-16 lg:px-24 bg-[#FDF8F5] border-y border-[#DDA7A5]/20">
+          <div className="max-w-3xl mx-auto text-center reveal-text">
+            <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Client Love</p>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424] mb-12">What they say about us</h2>
+
+            {/* This box holds the fading reviews perfectly in place */}
+            <div className="relative h-[280px] md:h-[200px] w-full flex justify-center items-center">
+              {reviews.map((review, idx) => (
+                <div 
+                  key={idx} 
+                  className={`absolute w-full px-4 transition-all duration-1000 ease-in-out flex flex-col items-center ${
+                    activeReview === idx ? 'opacity-100 translate-y-0 z-10' : 'opacity-0 translate-y-4 -z-10 pointer-events-none'
+                  }`}
+                >
+                  <div className="flex text-[#D4AF37] text-xl mb-6">★★★★★</div>
+                  <p className="text-gray-600 font-light leading-relaxed italic text-base md:text-lg mb-8 max-w-2xl">
+                    {review.text}
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold text-lg">
+                      {review.initial}
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">{review.name}</h4>
+                      <p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
             
-            <div className="mb-12 text-center reveal-text">
-              <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Client Love</p>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424]">What they say about us</h2>
+            {/* Minimalist dots for the reviews */}
+            <div className="flex justify-center gap-3 mt-4">
+              {reviews.map((_, idx) => (
+                <div key={idx} className={`h-1.5 rounded-full transition-all duration-500 ${activeReview === idx ? 'w-8 bg-[#DDA7A5]' : 'w-2 bg-gray-300'}`}></div>
+              ))}
             </div>
 
-            {/* Horizontal Scrolling Container */}
-            <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar reveal-text">
-              
-              {/* Review 1 */}
-              <div className="snap-center shrink-0 w-[85vw] md:w-[400px] bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-6">
-                <div className="flex text-[#D4AF37] text-lg">★★★★★</div>
-                <p className="text-gray-600 font-light leading-relaxed italic text-sm md:text-base flex-1">
-                  "The packaging was absolutely stunning. I ordered the Signature Box for my mother and it exceeded all expectations. The quality of the hijab is incredible."
-                </p>
-                <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                  <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold">F</div>
-                  <div>
-                    <h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">Fatima S.</h4>
-                    <p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Review 2 */}
-              <div className="snap-center shrink-0 w-[85vw] md:w-[400px] bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-6">
-                <div className="flex text-[#D4AF37] text-lg">★★★★★</div>
-                <p className="text-gray-600 font-light leading-relaxed italic text-sm md:text-base flex-1">
-                  "I requested a custom engraved prayer mat for my husband. It arrived perfectly on time and the detail is flawless. Will definitely be ordering my Ramadan gifts here."
-                </p>
-                <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                  <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold">M</div>
-                  <div>
-                    <h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">Mariam K.</h4>
-                    <p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Review 3 */}
-              <div className="snap-center shrink-0 w-[85vw] md:w-[400px] bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-6">
-                <div className="flex text-[#D4AF37] text-lg">★★★★★</div>
-                <p className="text-gray-600 font-light leading-relaxed italic text-sm md:text-base flex-1">
-                  "Alhamdulillah, finally a luxury modest brand that actually cares about the details. From the customer service to the fabric quality, everything is 10/10."
-                </p>
-                <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-                  <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold">Z</div>
-                  <div>
-                    <h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">Zainab A.</h4>
-                    <p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
           </div>
         </section>
-        
-       {/* --- UPGRADED LUXURY FOOTER --- */}
-        <footer className="border-t border-gray-200 bg-white pt-16 pb-8 px-6 mt-12">
+
+        {/* --- FOOTER --- */}
+        <footer className="bg-white py-16 px-6">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
-            
-            {/* Column 1: Brand */}
             <div className="flex flex-col items-center md:items-start">
               <img src="/logo.png" alt="Ayesha's Signature" className="h-12 w-auto object-contain mb-4" onError={(e) => e.target.style.display='none'} />
               <h2 className="font-serif font-bold text-lg tracking-wide mb-2 text-[#2C2424]">Ayesha's Signature</h2>
@@ -223,33 +232,22 @@ export default function Home() {
                 Premium modest fashion and luxury Islamic gifting. Elegance in every thread.
               </p>
             </div>
-
-            {/* Column 2: Contact Details */}
             <div className="flex flex-col items-center md:items-start">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#DDA7A5] mb-4">Contact Us</h3>
               <ul className="text-xs text-gray-500 flex flex-col gap-3">
                 <li><a href={WHATSAPP_URL} className="hover:text-[#DDA7A5] transition-colors">WhatsApp: +232 72 273689</a></li>
-                <li><a href="mailto:barrieisata24@gmail.com" className="hover:text-[#DDA7A5] transition-colors">contact@ayeshas-signature.com</a></li>
+                <li><a href="mailto:contact@ayeshas-signature.com" className="hover:text-[#DDA7A5] transition-colors">contact@ayeshas-signature.com</a></li>
                 <li><a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#DDA7A5] transition-colors">TikTok: @ayeshassignature1</a></li>
-                <li className="mt-2 text-[10px] opacity-70">Mon - Sat: 9:00 AM - 6:00 PM</li>
               </ul>
             </div>
-
-            {/* Column 3: Delivery Info */}
             <div className="flex flex-col items-center md:items-start">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#DDA7A5] mb-4">Delivery & Policies</h3>
               <ul className="text-xs text-gray-500 flex flex-col gap-3 font-light">
-                <li className="flex items-start gap-2 justify-center md:justify-start">
-                  <span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.
-                </li>
-                <li className="flex items-start gap-2 justify-center md:justify-start">
-                  <span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.
-                </li>
+                <li className="flex items-start gap-2 justify-center md:justify-start"><span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.</li>
+                <li className="flex items-start gap-2 justify-center md:justify-start"><span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.</li>
               </ul>
             </div>
-
           </div>
-
           <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-gray-100 text-center text-[9px] text-gray-400 tracking-[0.3em] uppercase flex flex-col md:flex-row justify-between items-center gap-4">
             <p>&copy; {new Date().getFullYear()} Ayesha's Signature. All Rights Reserved.</p>
             <p>Designed for Modest Elegance.</p>
