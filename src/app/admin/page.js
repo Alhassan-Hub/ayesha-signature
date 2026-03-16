@@ -4,141 +4,255 @@ import { db } from '@/utils/firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 
 export default function AdminDashboard() {
+  // === SECURITY ===
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+
+  // === TABS ===
+  const [activeTab, setActiveTab] = useState('products'); // 'products' or 'reviews'
+
+  // === PRODUCT STATES ===
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
-  const [isFeatured, setIsFeatured] = useState(false); // NEW: Homepage toggle
+  const [isFeatured, setIsFeatured] = useState(false); 
   const [isUploading, setIsUploading] = useState(false);
   const [inventory, setInventory] = useState([]);
+
+  // === REVIEW STATES ===
+  const [reviewerName, setReviewerName] = useState('');
+  const [reviewText, setReviewText] = useState('');
+  const [isReviewUploading, setIsReviewUploading] = useState(false);
+  const [reviewsList, setReviewsList] = useState([]);
 
   const CLOUDINARY_CLOUD_NAME = "dbufkrdoe"; 
   const CLOUDINARY_UPLOAD_PRESET = "ayeshas_preset";
 
-  const fetchInventory = async () => {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
+  // Login Handler (Uses the hidden .env file now!)
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+    } else {
+      alert('Incorrect Password');
+      setPassword('');
+    }
+  };
+
+  // Fetch Data
+  const fetchData = async () => {
+    // Fetch Products
+    const qProducts = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const snapProducts = await getDocs(qProducts);
     const items = [];
-    snapshot.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
+    snapProducts.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
     setInventory(items);
+
+    // Fetch Reviews
+    const qReviews = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
+    const snapReviews = await getDocs(qReviews);
+    const revs = [];
+    snapReviews.forEach((doc) => revs.push({ id: doc.id, ...doc.data() }));
+    setReviewsList(revs);
   };
 
   useEffect(() => {
-    fetchInventory();
-  }, []);
+    if (isAuthenticated) fetchData();
+  }, [isAuthenticated]);
 
-  const handleSubmit = async (e) => {
+  // --- PRODUCT FUNCTIONS ---
+  const handleProductSubmit = async (e) => {
     e.preventDefault();
-    if (!image) return alert("Please select an image!");
+    if (!image) return alert("Please select a photo first!");
     setIsUploading(true);
-
     try {
       const formData = new FormData();
       formData.append("file", image);
       formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-      const cloudinaryRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: "POST", body: formData }
-      );
+      const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
       const cloudinaryData = await cloudinaryRes.json();
 
       await addDoc(collection(db, "products"), {
         name: productName,
         price: price || "",
+        description: description || "", 
         imageUrl: cloudinaryData.secure_url,
-        isFeatured: isFeatured, // NEW: Saves the toggle state to database!
+        isFeatured: isFeatured,
         createdAt: new Date(),
       });
 
       alert("Product added!");
-      setProductName('');
-      setPrice('');
-      setImage(null);
-      setIsFeatured(false);
+      setProductName(''); setPrice(''); setDescription(''); setImage(null); setIsFeatured(false);
       document.getElementById('file-upload').value = "";
-      
-      fetchInventory();
+      fetchData();
     } catch (error) {
       console.error("Upload error:", error);
-    } finally {
-      setIsUploading(false);
-    }
+      alert("Failed to upload. Please try again.");
+    } finally { setIsUploading(false); }
   };
 
-  const handleDelete = async (id, name) => {
+  const handleProductDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       await deleteDoc(doc(db, "products", id));
-      fetchInventory(); 
+      fetchData(); 
     }
   };
 
+  // --- REVIEW FUNCTIONS ---
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!reviewerName || !reviewText) return alert("Please fill out both fields.");
+    setIsReviewUploading(true);
+    try {
+      await addDoc(collection(db, "reviews"), {
+        name: reviewerName,
+        text: `"${reviewText}"`, // Wraps it in quotes automatically
+        initial: reviewerName.charAt(0).toUpperCase(), // Grabs the first letter for the avatar!
+        createdAt: new Date(),
+      });
+      alert("Review added to website!");
+      setReviewerName(''); setReviewText('');
+      fetchData();
+    } catch (error) {
+      console.error(error); alert("Failed to add review.");
+    } finally { setIsReviewUploading(false); }
+  };
+
+  const handleReviewDelete = async (id, name) => {
+    if (window.confirm(`Delete review from ${name}?`)) {
+      await deleteDoc(doc(db, "reviews", id));
+      fetchData(); 
+    }
+  };
+
+  // ====================================================
+  // 1. THE SECURE LOGIN SCREEN
+  // ====================================================
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#FDF8F5] flex items-center justify-center p-6 font-sans">
+        <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-md w-full border border-gray-100 text-center">
+          <h1 className="text-3xl font-serif font-bold text-[#2C2424] mb-2">Ayesha's Admin</h1>
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-8">Authorized Access Only</p>
+          <form onSubmit={handleLogin} className="flex flex-col gap-6">
+            <input type="password" placeholder="Enter Passcode" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border-b-2 border-gray-200 py-3 text-center text-xl focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent tracking-widest" autoFocus />
+            <button type="submit" className="w-full py-4 bg-[#2C2424] text-white rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-[#DDA7A5] transition-colors shadow-lg">Unlock Studio</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // ====================================================
+  // 2. THE DASHBOARD
+  // ====================================================
   return (
-    <div className="min-h-screen bg-[#FAF9F6] p-8 md:p-24 font-sans text-[#1A1515]">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-12 border-b border-gray-300 pb-6">
-          <h1 className="text-4xl font-serif font-bold">Ayesha's Admin</h1>
-          <p className="text-gray-600 mt-2">Manage your live website inventory.</p>
+    <div className="min-h-screen bg-[#FDF8F5] p-6 md:p-12 font-sans text-[#2C2424]">
+      <div className="max-w-7xl mx-auto">
+        
+        <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b border-gray-200 pb-6 gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424]">Management Studio</h1>
+            <p className="text-xs text-gray-500 uppercase tracking-widest mt-2">Control your live inventory & reviews</p>
+          </div>
+          <button onClick={() => setIsAuthenticated(false)} className="text-xs text-gray-400 hover:text-red-500 font-bold uppercase tracking-widest transition-colors">
+            Lock & Log Out
+          </button>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-          {/* UPLOAD FORM */}
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 h-fit">
-            <h2 className="text-2xl font-serif font-bold mb-6">Add New Product</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Product Name</label>
-                <input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-[#b76e79] bg-transparent" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Price (Optional)</label>
-                <input type="text" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Leave blank if not needed" className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-[#b76e79] bg-transparent" />
-              </div>
-              
-              {/* NEW: FEATURED TOGGLE */}
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <input type="checkbox" id="featured" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="w-5 h-5 accent-[#b76e79] cursor-pointer" />
-                <label htmlFor="featured" className="text-sm font-bold text-gray-700 cursor-pointer">
-                  Show on Homepage (Featured 4)
-                </label>
-              </div>
+        {/* TABS CONTROLLER */}
+        <div className="flex gap-4 mb-8 border-b border-gray-200 pb-px">
+          <button onClick={() => setActiveTab('products')} className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'products' ? 'text-[#DDA7A5] border-b-2 border-[#DDA7A5]' : 'text-gray-400 hover:text-[#2C2424]'}`}>
+            🛍️ Products
+          </button>
+          <button onClick={() => setActiveTab('reviews')} className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'text-[#DDA7A5] border-b-2 border-[#DDA7A5]' : 'text-gray-400 hover:text-[#2C2424]'}`}>
+            ⭐ Client Reviews
+          </button>
+        </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Product Photo</label>
-                <input id="file-upload" type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#1A1515] file:text-white hover:file:bg-[#b76e79] file:cursor-pointer" required />
-              </div>
-              <button type="submit" disabled={isUploading} className={`w-full py-4 rounded-full uppercase tracking-widest text-xs font-bold transition-colors mt-8 text-white ${isUploading ? 'bg-gray-400' : 'bg-[#1A1515] hover:bg-[#b76e79]'}`}>
-                {isUploading ? 'Uploading...' : 'Upload to Website'}
-              </button>
-            </form>
-          </div>
-
-          {/* LIVE INVENTORY LIST */}
-          <div>
-            <h2 className="text-2xl font-serif font-bold mb-6">Current Inventory</h2>
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              {inventory.length === 0 ? (
-                <p className="text-gray-500 italic">No products uploaded yet.</p>
-              ) : (
-                inventory.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <img src={item.imageUrl} className="w-16 h-16 object-cover rounded-lg" alt={item.name} />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm">{item.name}</h3>
-                        {/* NEW: Shows a star if it's on the homepage */}
-                        {item.isFeatured && <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">⭐ Homepage</span>}
+        {/* =====================================
+            TAB 1: PRODUCTS
+            ===================================== */}
+        {activeTab === 'products' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 animate-in fade-in duration-300">
+            {/* UPLOAD FORM */}
+            <div className="lg:col-span-5 bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 h-fit">
+              <h2 className="text-xl font-serif font-bold mb-6 text-[#2C2424]">Upload New Item</h2>
+              <form onSubmit={handleProductSubmit} className="space-y-6">
+                <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Product Name *</label><input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" required /></div>
+                <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Price (Optional)</label><input type="text" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" /></div>
+                <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Product Details (Optional)</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm h-28 resize-none mt-2" /></div>
+                <div className="flex items-start gap-4 p-5 bg-[#FDF8F5] rounded-xl border border-[#DDA7A5]/20"><input type="checkbox" id="featured" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="w-5 h-5 accent-[#DDA7A5] cursor-pointer mt-1" /><div><label htmlFor="featured" className="text-sm font-bold text-[#2C2424] cursor-pointer block">Feature on Homepage</label><p className="text-[10px] text-gray-500 leading-relaxed mt-1">Check this to show the item in the 4 spots on the front page.</p></div></div>
+                <div className="pt-2"><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Product Photo *</label><div className="relative border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-center hover:border-[#DDA7A5] transition-colors bg-gray-50 group cursor-pointer"><input id="file-upload" type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required /><span className="text-2xl mb-2 group-hover:scale-110 transition-transform">{image ? '✅' : '📸'}</span><span className="text-xs font-bold text-gray-600 text-center">{image ? image.name : "Tap to select an image"}</span></div></div>
+                <button type="submit" disabled={isUploading} className={`w-full py-5 rounded-full uppercase tracking-[0.2em] text-[10px] font-bold transition-all shadow-lg mt-4 ${isUploading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#2C2424] text-white hover:bg-[#DDA7A5]'}`}>{isUploading ? 'Uploading to Website...' : 'Publish to Website'}</button>
+              </form>
+            </div>
+            {/* LIVE INVENTORY LIST */}
+            <div className="lg:col-span-7">
+              <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-serif font-bold text-[#2C2424]">Current Inventory</h2><span className="text-xs font-bold bg-[#DDA7A5]/10 text-[#DDA7A5] px-3 py-1 rounded-full">{inventory.length} Items</span></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+                {inventory.length === 0 ? (<div className="col-span-2 text-center py-20 bg-white rounded-[2rem] border border-gray-100"><p className="text-gray-400 italic text-sm">Your store is empty.</p></div>) : (
+                  inventory.map((item) => (
+                    <div key={item.id} className="flex flex-col bg-white p-4 rounded-2xl shadow-sm border border-gray-100 relative group hover:shadow-md transition-shadow">
+                      <button onClick={() => handleProductDelete(item.id, item.name)} className="absolute top-4 right-4 w-8 h-8 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors z-10">✕</button>
+                      <div className="w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-4"><img src={item.imageUrl} className="w-full h-full object-cover" alt={item.name} /></div>
+                      <div className="flex-1 flex flex-col"><h3 className="font-bold text-sm text-[#2C2424] line-clamp-1 pr-6">{item.name}</h3><p className="text-[10px] text-[#DDA7A5] font-bold tracking-widest mt-1 mb-2">{item.price}</p>
+                        {item.isFeatured && <div className="mt-auto pt-3 border-t border-gray-100"><span className="text-[9px] bg-[#2C2424] text-white px-3 py-1 rounded-full font-bold uppercase tracking-widest">★ Front Page</span></div>}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">{item.price || "No price set"}</p>
                     </div>
-                    <button onClick={() => handleDelete(item.id, item.name)} className="text-xs text-red-500 font-bold uppercase tracking-wider hover:underline">
-                      Delete
-                    </button>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* =====================================
+            TAB 2: REVIEWS
+            ===================================== */}
+        {activeTab === 'reviews' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 animate-in fade-in duration-300">
+            {/* ADD REVIEW FORM */}
+            <div className="lg:col-span-5 bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 h-fit">
+              <h2 className="text-xl font-serif font-bold mb-6 text-[#2C2424]">Post a Customer Review</h2>
+              <form onSubmit={handleReviewSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Customer Name (e.g. Fatima S.) *</label>
+                  <input type="text" value={reviewerName} onChange={(e) => setReviewerName(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Their Review *</label>
+                  <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder="Type what they said..." className="w-full border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm h-32 resize-none mt-2" required />
+                </div>
+                <button type="submit" disabled={isReviewUploading} className={`w-full py-5 rounded-full uppercase tracking-[0.2em] text-[10px] font-bold transition-all shadow-lg mt-4 ${isReviewUploading ? 'bg-gray-300 text-gray-500' : 'bg-[#DDA7A5] text-white hover:bg-[#2C2424]'}`}>
+                  {isReviewUploading ? 'Posting...' : 'Post to Homepage'}
+                </button>
+              </form>
+            </div>
+            
+            {/* LIVE REVIEWS LIST */}
+            <div className="lg:col-span-7">
+              <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-serif font-bold text-[#2C2424]">Live Reviews</h2><span className="text-xs font-bold bg-[#DDA7A5]/10 text-[#DDA7A5] px-3 py-1 rounded-full">{reviewsList.length} Active</span></div>
+              <div className="flex flex-col gap-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+                {reviewsList.length === 0 ? (<div className="text-center py-20 bg-white rounded-[2rem] border border-gray-100"><p className="text-gray-400 italic text-sm">No custom reviews. Showing demo reviews on homepage.</p></div>) : (
+                  reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative group">
+                      <button onClick={() => handleReviewDelete(rev.id, rev.name)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-xs font-bold tracking-widest uppercase">Delete</button>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold text-lg">{rev.initial}</div>
+                        <h4 className="font-bold text-[#2C2424] text-sm uppercase tracking-widest">{rev.name}</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 italic leading-relaxed">{rev.text}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
