@@ -79,17 +79,23 @@ export default function Home() {
               </Link>
             </div>
 
-           {/* Right: Elegant Logo Placeholder */}
-            <div className="w-full md:w-2/5 reveal-text">
-              <div className="w-full aspect-[3/4] bg-white rounded-t-full p-2 shadow-xl border border-gray-100">
-                <div className="w-full h-full rounded-t-full bg-[#FDF8F5] overflow-hidden relative flex items-center justify-center">
-                  
-                  {/* Shows the logo perfectly centered in the arch */}
-                  <img src="/logo.png" alt="Ayesha's Signature" className="w-1/2 h-auto object-contain opacity-60" />
-
-                </div>
+           {/* Right: Elegant Founder Portrait */}
+            <div className="w-full md:w-2/5 reveal-text mt-8 md:mt-0">
+              <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
+                <img 
+                  src="/ayesha.jpg" 
+                  alt="Ayesha - Founder" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback if the image name is wrong
+                    e.target.src = "https://images.unsplash.com/photo-1589467332212-003661eb1a47?auto=format&fit=crop&q=80&w=800";
+                  }}
+                />
+                {/* Subtle shadow at the bottom of the image for depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
             </div>
+           
 
           </div>
         </section>

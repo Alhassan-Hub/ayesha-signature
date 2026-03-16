@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { db } from '@/utils/firebase';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Float, ContactShadows, useGLTF, Center } from '@react-three/drei';
+import { Environment, Float, ContactShadows, useGLTF, Center, PresentationControls } from '@react-three/drei';
 import * as THREE from 'three';
 import CustomizerModal from '@/components/CustomizerModal';
 import Link from 'next/link';
@@ -48,12 +48,10 @@ export default function ShopPage() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Modals State
   const [activeCustomizer, setActiveCustomizer] = useState(null); 
-  const [quickViewProduct, setQuickViewProduct] = useState(null); // NEW: For Product Details
+  const [quickViewProduct, setQuickViewProduct] = useState(null); 
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Cart State
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
@@ -102,7 +100,7 @@ export default function ShopPage() {
       if (existingItem) return prevCart.map((item) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
       return [...prevCart, { ...product, qty: 1 }];
     });
-    setQuickViewProduct(null); // Close details modal when added
+    setQuickViewProduct(null); 
     setIsCartOpen(true); 
   };
 
@@ -121,11 +119,10 @@ export default function ShopPage() {
   };
 
   return (
-    // LIGHT THEME BACKGROUND
     <main className="min-h-screen bg-[#FAF9F6] text-[#2C2424] font-sans overflow-x-hidden relative">
       
-      {/* NAVIGATION */}
-      <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
+      {/* NAVIGATION - Pushed down slightly to account for the Global Announcement Bar */}
+      <nav className="fixed top-[32px] md:top-[36px] w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative">
           <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors flex items-center gap-2 z-10">
             <span>←</span> Back
@@ -182,10 +179,9 @@ export default function ShopPage() {
         )}
       </div>
 
-      {/* --- NEW: PRODUCT DETAILS QUICK VIEW MODAL --- */}
+      {/* PRODUCT DETAILS QUICK VIEW MODAL */}
       {quickViewProduct && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-          {/* Click background to close */}
           <div className="absolute inset-0" onClick={() => setQuickViewProduct(null)}></div>
           
           <div className="relative w-full sm:max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
@@ -202,10 +198,26 @@ export default function ShopPage() {
                 
                 <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
                 
+                {/* SMART TEXT DESCRIPTIONS */}
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">The Details</h3>
-                <p className="text-sm text-gray-600 leading-relaxed mb-8 font-light">
-                  Crafted with uncompromising attention to detail, this piece represents the pinnacle of modest luxury. Designed to elevate your daily rituals with elegance, grace, and timeless style.
+                <p className="text-sm text-gray-600 leading-relaxed mb-6 font-light">
+                  {quickViewProduct.description ? quickViewProduct.description : 
+                    quickViewProduct.name.toLowerCase().includes('mat') ? "A premium silk prayer mat that you can beautifully customize with your name. Designed for ultimate comfort and elegance during your daily Ibadah."
+                    : quickViewProduct.name.toLowerCase().includes('box') || quickViewProduct.name.toLowerCase().includes('bouquet') ? "A thoughtfully curated gift box featuring a selection of our finest essentials. The exact items vary, ensuring a unique and beautiful unboxing experience every time."
+                    : quickViewProduct.name.toLowerCase().includes('hijab') || quickViewProduct.name.toLowerCase().includes('scarf') ? "A beautiful, high-quality hijab scarf available in a variety of stunning colors. It drapes perfectly, offering effortless everyday elegance."
+                    : "A beautiful signature piece from our collection, crafted with care and perfect for your modest lifestyle."
+                  }
                 </p>
+
+                {/* DELIVERY & POLICIES */}
+                <div className="bg-gray-50 p-4 rounded-xl mb-8 border border-gray-100">
+                  <h4 className="text-[9px] font-bold uppercase tracking-widest text-[#2C2424] mb-3">Delivery & Policies</h4>
+                  <ul className="text-xs text-gray-500 flex flex-col gap-2 font-light">
+                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.</li>
+                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.</li>
+                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Secure packaging to ensure pristine condition.</li>
+                  </ul>
+                </div>
 
                 <div className="mt-auto flex flex-col gap-3 pt-4 border-t border-gray-100">
                   <button onClick={() => checkoutSingleItem(quickViewProduct)} className="w-full py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
@@ -221,7 +233,7 @@ export default function ShopPage() {
         </div>
       )}
 
-      {/* FULL SCREEN 3D EXPERIENCE (LIGHT THEME) */}
+      {/* FULL SCREEN 3D EXPERIENCE */}
       <div className="relative w-full h-screen flex flex-col items-center justify-center z-10 bg-[#FAF9F6]">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
           <span className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white">
@@ -236,11 +248,15 @@ export default function ShopPage() {
               <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
                 <ambientLight intensity={2} color="#FFFFFF" />
                 <spotLight position={[5, 10, 5]} intensity={1.5} color="#DDA7A5" />
-                {/* Changed environment to sunset for better light mode reflections */}
                 <Environment preset="sunset" />
-                {customItems.map((item, index) => (
-                  <CarouselItem key={item.id} file={item.file} isCurrent={currentIndex === index} config={modelConfigs[item.id]} />
-                ))}
+                
+                {/* 3D ZOOM ENABLED HERE */}
+                <PresentationControls global zoom={1.5} config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }}>
+                  {customItems.map((item, index) => (
+                    <CarouselItem key={item.id} file={item.file} isCurrent={currentIndex === index} config={modelConfigs[item.id]} />
+                  ))}
+                </PresentationControls>
+
                 <ContactShadows position={[0, -1.8, 0]} opacity={0.3} scale={15} blur={2.5} far={4} color="#DDA7A5" />
               </Canvas>
             </Suspense>
@@ -262,7 +278,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* FIREBASE GRID (LIGHT THEME) */}
+      {/* FIREBASE GRID */}
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-20 relative z-10 pb-32">
         <div className="mb-12 border-b border-gray-200 pb-6 flex items-end justify-between">
           <div>
@@ -280,10 +296,9 @@ export default function ShopPage() {
             {products.map((product) => (
               <div key={product.id} className="group flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all">
                 
-                {/* Clicking image or text opens Quick View! */}
                 <div className="cursor-pointer" onClick={() => setQuickViewProduct(product)}>
                   <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-gray-50 mb-4">
-                    <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105" />
+                    <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-110" />
                   </div>
                   <h3 className="text-xs font-serif text-[#2C2424] mb-1 group-hover:text-[#DDA7A5] transition-colors line-clamp-1 px-1">{product.name}</h3>
                   {product.price && <p className="text-[10px] tracking-widest text-gray-400 mb-4 px-1">{product.price}</p>}
