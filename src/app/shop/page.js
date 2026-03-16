@@ -117,10 +117,9 @@ export default function ShopPage() {
   };
 
   return (
-    // THE FIX: Changed bg to the warmer #FDF8F5
     <main className="min-h-screen bg-[#FDF8F5] text-[#2C2424] font-sans overflow-x-hidden relative">
       
-      {/* THE FIX: Navbar permanently locked to top-0 */}
+      {/* LOCKED NAVBAR */}
       <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative">
           <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors flex items-center gap-2 z-10">
@@ -187,12 +186,9 @@ export default function ShopPage() {
             <button onClick={() => setQuickViewProduct(null)} className="absolute top-4 right-6 z-10 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-black">✕</button>
             
             <div className="flex flex-col sm:flex-row max-h-[85vh] overflow-y-auto">
-              
-              {/* THE FIX: Object-Contain ensures the image is never chopped off on Android! */}
               <div className="w-full sm:w-1/2 h-[40vh] sm:h-auto bg-[#FDF8F5] relative p-6 flex justify-center items-center">
                 <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="max-w-full max-h-full object-contain rounded shadow-sm" />
               </div>
-
               <div className="w-full sm:w-1/2 p-6 md:p-8 flex flex-col">
                 <p className="text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] mb-2">Ayesha's Signature</p>
                 <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2 leading-tight">{quickViewProduct.name}</h2>
@@ -233,8 +229,8 @@ export default function ShopPage() {
         </div>
       )}
 
-      {/* FULL SCREEN 3D EXPERIENCE */}
-      <div className="relative w-full h-[85vh] flex flex-col items-center justify-center z-10 bg-[#FDF8F5]">
+      {/* 3D SHOWROOM */}
+      <div className="relative w-full h-[85vh] flex flex-col items-center justify-center z-10 bg-[#FAF9F6] pt-16">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
           <span className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white">
             {activeItem.tag}
@@ -242,7 +238,7 @@ export default function ShopPage() {
           <h1 className="text-3xl md:text-5xl font-serif mt-6 text-[#2C2424] tracking-widest transition-all duration-500">{activeItem.title}</h1>
         </div>
 
-        <div className="absolute inset-0 w-full h-full z-10 pointer-events-none animate-in fade-in duration-700">
+        <div className="absolute inset-0 w-full h-full z-10 pointer-events-none animate-in fade-in duration-700 pt-16">
           <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-[#DDA7A5] text-[10px] uppercase tracking-widest">Loading Studio...</div>}>
             <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
               <ambientLight intensity={1.2} color="#ffffff" />
@@ -260,7 +256,6 @@ export default function ShopPage() {
           </Suspense>
         </div>
 
-        {/* DOTS ONLY */}
         <div className="absolute bottom-16 w-full flex flex-col items-center gap-6 z-20 pointer-events-none">
           <div className="flex items-center gap-3">
             {customItems.map((_, idx) => (
@@ -270,8 +265,47 @@ export default function ShopPage() {
         </div>
       </div>
 
+      {/* --- BESTSELLER SPOTLIGHT --- */}
+      {products.length > 0 && (
+        <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-12 mb-20 relative z-10">
+          <div className="w-full bg-white rounded-[2rem] md:rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden flex flex-col md:flex-row items-center">
+            
+            <div className="w-full md:w-1/2 h-[400px] md:h-[500px] bg-[#FDF8F5] p-8 md:p-16 flex items-center justify-center">
+              <img 
+                src={products.find(p => p.name.toLowerCase().includes('box') || p.name.toLowerCase().includes('bouquet'))?.imageUrl || products[0]?.imageUrl} 
+                alt="Bestseller" 
+                className="w-full h-full object-contain drop-shadow-xl hover:scale-105 transition-transform duration-700" 
+              />
+            </div>
+            
+            <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col items-start text-left">
+              <span className="px-4 py-1.5 bg-[#DDA7A5]/10 text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] rounded-full mb-6">
+                Most Loved
+              </span>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-[#2C2424] mb-4 leading-tight">
+                The Signature <br/> <span className="text-[#DDA7A5] italic">Gift Box</span>
+              </h2>
+              <p className="text-sm text-gray-500 font-light leading-relaxed mb-8 max-w-md">
+                Our #1 best-selling package. Thoughtfully curated with our finest premium hijabs, bespoke accessories, and intentional details. The ultimate expression of modest luxury.
+              </p>
+              
+              <button 
+                onClick={() => {
+                  const targetProduct = products.find(p => p.name.toLowerCase().includes('box') || p.name.toLowerCase().includes('bouquet')) || products[0];
+                  addToCart(targetProduct);
+                }} 
+                className="px-10 py-5 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#DDA7A5] transition-all shadow-xl hover:shadow-[0_10px_30px_rgba(221,167,165,0.4)]"
+              >
+                Add Box to Bag
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* FIREBASE GRID */}
-      <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-10 relative z-10 pb-32">
+      <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 relative z-10 pb-32">
         <div className="mb-12 border-b border-gray-200 pb-6 flex items-end justify-between">
           <div>
             <p className="text-[#DDA7A5] text-[9px] font-bold tracking-[0.4em] uppercase mb-3">Ready to ship</p>
@@ -289,7 +323,7 @@ export default function ShopPage() {
               <div key={product.id} className="group flex flex-col bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all">
                 
                 <div className="cursor-pointer" onClick={() => setQuickViewProduct(product)}>
-                  <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-[#FDF8F5] mb-4">
+                  <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-gray-50 mb-4">
                     <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-110" />
                   </div>
                   <h3 className="text-xs font-serif text-[#2C2424] mb-1 group-hover:text-[#DDA7A5] transition-colors line-clamp-1 px-1">{product.name}</h3>
