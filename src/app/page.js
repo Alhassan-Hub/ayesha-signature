@@ -13,10 +13,11 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+   const gridRef = useRef(null);
+   
   const WHATSAPP_URL = "https://wa.me/23272273689?text=Hello%20Ayesha!";
   const TIKTOK_URL = "https://www.tiktok.com/@ayeshassignature1";
-
+  
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
