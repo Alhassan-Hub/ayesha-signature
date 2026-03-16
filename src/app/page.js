@@ -151,21 +151,48 @@ export default function Home() {
           </div>
         </section>
 
-        {/* --- FOOTER --- */}
-        <footer className="border-t border-gray-200 bg-white py-16 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-center md:text-left flex flex-col items-center md:items-start">
-              <img src="/logo.png" alt="Ayesha's Signature" className="h-10 w-auto object-contain mb-4" onError={(e) => e.target.style.display='none'} />
-              <h2 className="font-serif font-bold text-lg tracking-wide mb-1 text-[#2C2424]">Ayesha's Signature</h2>
-              <p className="text-[10px] opacity-60 tracking-[0.2em] uppercase">Elegance in every thread.</p>
+       {/* --- UPGRADED LUXURY FOOTER --- */}
+        <footer className="border-t border-gray-200 bg-white pt-16 pb-8 px-6 mt-12">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
+            
+            {/* Column 1: Brand */}
+            <div className="flex flex-col items-center md:items-start">
+              <img src="/logo.png" alt="Ayesha's Signature" className="h-12 w-auto object-contain mb-4" onError={(e) => e.target.style.display='none'} />
+              <h2 className="font-serif font-bold text-lg tracking-wide mb-2 text-[#2C2424]">Ayesha's Signature</h2>
+              <p className="text-[10px] opacity-60 tracking-[0.2em] uppercase leading-relaxed max-w-xs">
+                Premium modest fashion and luxury Islamic gifting. Elegance in every thread.
+              </p>
             </div>
-            <div className="flex gap-8 text-[10px] font-bold tracking-[0.2em] uppercase opacity-70">
-              <a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#DDA7A5] transition-colors">TikTok</a>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#DDA7A5] transition-colors">WhatsApp</a>
+
+            {/* Column 2: Contact Details */}
+            <div className="flex flex-col items-center md:items-start">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#DDA7A5] mb-4">Contact Us</h3>
+              <ul className="text-xs text-gray-500 flex flex-col gap-3">
+                <li><a href={WHATSAPP_URL} className="hover:text-[#DDA7A5] transition-colors">WhatsApp: +232 72 273689</a></li>
+                <li><a href="mailto:contact@ayeshas-signature.com" className="hover:text-[#DDA7A5] transition-colors">contact@ayeshas-signature.com</a></li>
+                <li><a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#DDA7A5] transition-colors">TikTok: @ayeshassignature1</a></li>
+                <li className="mt-2 text-[10px] opacity-70">Mon - Sat: 9:00 AM - 6:00 PM</li>
+              </ul>
             </div>
+
+            {/* Column 3: Delivery Info */}
+            <div className="flex flex-col items-center md:items-start">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#DDA7A5] mb-4">Delivery & Policies</h3>
+              <ul className="text-xs text-gray-500 flex flex-col gap-3 font-light">
+                <li className="flex items-start gap-2 justify-center md:justify-start">
+                  <span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.
+                </li>
+                <li className="flex items-start gap-2 justify-center md:justify-start">
+                  <span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.
+                </li>
+              </ul>
+            </div>
+
           </div>
-          <div className="max-w-7xl mx-auto mt-12 text-center text-[9px] opacity-40 tracking-[0.3em] uppercase">
-            &copy; {new Date().getFullYear()} Ayesha's Signature. All Rights Reserved.
+
+          <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-gray-100 text-center text-[9px] text-gray-400 tracking-[0.3em] uppercase flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>&copy; {new Date().getFullYear()} Ayesha's Signature. All Rights Reserved.</p>
+            <p>Designed for Modest Elegance.</p>
           </div>
         </footer>
 

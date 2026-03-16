@@ -7,7 +7,7 @@ export default function Navbar() {
   const WHATSAPP_URL = "https://wa.me/23272273689?text=Hello%20Ayesha!";
 
   return (
-    <div className="fixed top-[32px] md:top-[36px] w-full z-[100] pointer-events-none">
+   <div className="fixed top-0 w-full z-[100] pointer-events-none">
       {/* THE MAIN NAVIGATION BAR (Light Theme) */}
       <nav className="w-full bg-white/80 backdrop-blur-xl border-b border-gray-200 pointer-events-auto transition-all">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">

@@ -122,7 +122,8 @@ export default function ShopPage() {
     <main className="min-h-screen bg-[#FAF9F6] text-[#2C2424] font-sans overflow-x-hidden relative">
       
       {/* NAVIGATION - Pushed down slightly to account for the Global Announcement Bar */}
-      <nav className="fixed top-[32px] md:top-[36px] w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
+      {/* NAVIGATION - Perfectly fixed to the top now! */}
+      <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative">
           <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors flex items-center gap-2 z-10">
             <span>←</span> Back
