@@ -298,27 +298,52 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* BESTSELLER SPOTLIGHT */}
-      {products.length > 0 && (
-        <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-12 mb-20 relative z-10">
-          <div className="w-full bg-white rounded-[2rem] md:rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden flex flex-col md:flex-row items-center">
-            <div className="w-full md:w-1/2 h-[400px] md:h-[500px] bg-[#FDF8F5] p-8 md:p-16 flex items-center justify-center">
-              <img src={products.find(p => (p?.name || '').toLowerCase().includes('box') || (p?.name || '').toLowerCase().includes('bouquet'))?.imageUrl || products[0]?.imageUrl} alt="Bestseller" className="w-full h-full object-contain drop-shadow-xl hover:scale-105 transition-transform duration-700" />
-            </div>
-            <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col items-start text-left">
-              <span className="px-4 py-1.5 bg-[#DDA7A5]/10 text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] rounded-full mb-6">Most Loved</span>
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-[#2C2424] mb-4 leading-tight">The Signature <br/> <span className="text-[#DDA7A5] italic">Gift Box</span></h2>
-              <p className="text-sm text-gray-500 font-light leading-relaxed mb-8 max-w-md">Our #1 best-selling package. Thoughtfully curated with our finest premium hijabs, bespoke accessories, and intentional details.</p>
-              <button 
-                onClick={() => addToCart(products.find(p => (p?.name || '').toLowerCase().includes('box') || (p?.name || '').toLowerCase().includes('bouquet')) || products[0])} 
-                className="px-10 py-5 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#DDA7A5] transition-all shadow-xl"
-              >
-                Add Box to Bag
-              </button>
+{/* BESTSELLER SPOTLIGHT */}
+      {products.length > 0 && (() => {
+        // 1. Cleanly find the item! Looks for the checked box first, then falls back to a Gift Box.
+        const bestSellerItem = products.find(p => p.isBestseller === true) || 
+                               products.find(p => (p?.name || '').toLowerCase().includes('box') || (p?.name || '').toLowerCase().includes('bouquet')) || 
+                               products[0];
+
+        return (
+          <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-12 mb-20 relative z-10">
+            <div className="w-full bg-white rounded-[2rem] md:rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden flex flex-col md:flex-row items-center">
+              
+              {/* THE IMAGE */}
+              <div className="w-full md:w-1/2 h-[400px] md:h-[500px] bg-[#FDF8F5] p-8 md:p-16 flex items-center justify-center">
+                <img 
+                  src={bestSellerItem?.imageUrl} 
+                  alt="Bestseller" 
+                  className="w-full h-full object-contain drop-shadow-xl hover:scale-105 transition-transform duration-700" 
+                />
+              </div>
+              
+              {/* THE DETAILS */}
+              <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col items-start text-left">
+                <span className="px-4 py-1.5 bg-[#DDA7A5]/10 text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] rounded-full mb-6">
+                  Most Loved
+                </span>
+                
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-[#2C2424] mb-4 leading-tight">
+                  {bestSellerItem?.name || "The Signature Gift Box"}
+                </h2>
+                
+                <p className="text-sm text-gray-500 font-light leading-relaxed mb-8 max-w-md">
+                  {bestSellerItem?.description || "Our #1 best-selling package. Thoughtfully curated with our finest premium hijabs, bespoke accessories, and intentional details."}
+                </p>
+                
+                <button 
+                  onClick={() => addToCart(bestSellerItem)} 
+                  className="px-10 py-5 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#DDA7A5] transition-all shadow-xl"
+                >
+                  Add to Bag
+                </button>
+              </div>
+
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* FIREBASE GRID */}
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 relative z-10 pb-32">

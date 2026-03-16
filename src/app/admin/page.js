@@ -4,23 +4,21 @@ import { db } from '@/utils/firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 
 export default function AdminDashboard() {
-  // === SECURITY ===
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
+  const [activeTab, setActiveTab] = useState('products'); 
 
-  // === TABS ===
-  const [activeTab, setActiveTab] = useState('products'); // 'products' or 'reviews'
-
-  // === PRODUCT STATES ===
+  // Products
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [isFeatured, setIsFeatured] = useState(false); 
+  const [isBestseller, setIsBestseller] = useState(false); // NEW STATE
   const [isUploading, setIsUploading] = useState(false);
   const [inventory, setInventory] = useState([]);
 
-  // === REVIEW STATES ===
+  // Reviews
   const [reviewerName, setReviewerName] = useState('');
   const [reviewText, setReviewText] = useState('');
   const [isReviewUploading, setIsReviewUploading] = useState(false);
@@ -29,27 +27,19 @@ export default function AdminDashboard() {
   const CLOUDINARY_CLOUD_NAME = "dbufkrdoe"; 
   const CLOUDINARY_UPLOAD_PRESET = "ayeshas_preset";
 
-  // Login Handler (Uses the hidden .env file now!)
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-    } else {
-      alert('Incorrect Password');
-      setPassword('');
-    }
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) setIsAuthenticated(true);
+    else { alert('Incorrect Password'); setPassword(''); }
   };
 
-  // Fetch Data
   const fetchData = async () => {
-    // Fetch Products
     const qProducts = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const snapProducts = await getDocs(qProducts);
     const items = [];
     snapProducts.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
     setInventory(items);
 
-    // Fetch Reviews
     const qReviews = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
     const snapReviews = await getDocs(qReviews);
     const revs = [];
@@ -61,7 +51,6 @@ export default function AdminDashboard() {
     if (isAuthenticated) fetchData();
   }, [isAuthenticated]);
 
-  // --- PRODUCT FUNCTIONS ---
   const handleProductSubmit = async (e) => {
     e.preventDefault();
     if (!image) return alert("Please select a photo first!");
@@ -70,7 +59,6 @@ export default function AdminDashboard() {
       const formData = new FormData();
       formData.append("file", image);
       formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
       const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
       const cloudinaryData = await cloudinaryRes.json();
 
@@ -80,56 +68,44 @@ export default function AdminDashboard() {
         description: description || "", 
         imageUrl: cloudinaryData.secure_url,
         isFeatured: isFeatured,
+        isBestseller: isBestseller, // SAVES THE TOGGLE TO FIREBASE
         createdAt: new Date(),
       });
 
       alert("Product added!");
-      setProductName(''); setPrice(''); setDescription(''); setImage(null); setIsFeatured(false);
+      setProductName(''); setPrice(''); setDescription(''); setImage(null); setIsFeatured(false); setIsBestseller(false);
       document.getElementById('file-upload').value = "";
       fetchData();
     } catch (error) {
-      console.error("Upload error:", error);
-      alert("Failed to upload. Please try again.");
+      console.error(error); alert("Failed to upload.");
     } finally { setIsUploading(false); }
   };
 
   const handleProductDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+    if (window.confirm(`Delete "${name}"?`)) {
       await deleteDoc(doc(db, "products", id));
       fetchData(); 
     }
   };
 
-  // --- REVIEW FUNCTIONS ---
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!reviewerName || !reviewText) return alert("Please fill out both fields.");
     setIsReviewUploading(true);
     try {
       await addDoc(collection(db, "reviews"), {
-        name: reviewerName,
-        text: `"${reviewText}"`, // Wraps it in quotes automatically
-        initial: reviewerName.charAt(0).toUpperCase(), // Grabs the first letter for the avatar!
-        createdAt: new Date(),
+        name: reviewerName, text: `"${reviewText}"`, initial: reviewerName.charAt(0).toUpperCase(), createdAt: new Date(),
       });
-      alert("Review added to website!");
-      setReviewerName(''); setReviewText('');
-      fetchData();
-    } catch (error) {
-      console.error(error); alert("Failed to add review.");
-    } finally { setIsReviewUploading(false); }
+      alert("Review added!"); setReviewerName(''); setReviewText(''); fetchData();
+    } catch (error) { console.error(error); } finally { setIsReviewUploading(false); }
   };
 
   const handleReviewDelete = async (id, name) => {
     if (window.confirm(`Delete review from ${name}?`)) {
-      await deleteDoc(doc(db, "reviews", id));
-      fetchData(); 
+      await deleteDoc(doc(db, "reviews", id)); fetchData(); 
     }
   };
 
-  // ====================================================
-  // 1. THE SECURE LOGIN SCREEN
-  // ====================================================
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#FDF8F5] flex items-center justify-center p-6 font-sans">
@@ -145,51 +121,54 @@ export default function AdminDashboard() {
     );
   }
 
-  // ====================================================
-  // 2. THE DASHBOARD
-  // ====================================================
   return (
     <div className="min-h-screen bg-[#FDF8F5] p-6 md:p-12 font-sans text-[#2C2424]">
       <div className="max-w-7xl mx-auto">
-        
         <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b border-gray-200 pb-6 gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424]">Management Studio</h1>
-            <p className="text-xs text-gray-500 uppercase tracking-widest mt-2">Control your live inventory & reviews</p>
           </div>
-          <button onClick={() => setIsAuthenticated(false)} className="text-xs text-gray-400 hover:text-red-500 font-bold uppercase tracking-widest transition-colors">
-            Lock & Log Out
-          </button>
+          <button onClick={() => setIsAuthenticated(false)} className="text-xs text-gray-400 hover:text-red-500 font-bold uppercase tracking-widest transition-colors">Lock & Log Out</button>
         </header>
 
-        {/* TABS CONTROLLER */}
         <div className="flex gap-4 mb-8 border-b border-gray-200 pb-px">
-          <button onClick={() => setActiveTab('products')} className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'products' ? 'text-[#DDA7A5] border-b-2 border-[#DDA7A5]' : 'text-gray-400 hover:text-[#2C2424]'}`}>
-            🛍️ Products
-          </button>
-          <button onClick={() => setActiveTab('reviews')} className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'text-[#DDA7A5] border-b-2 border-[#DDA7A5]' : 'text-gray-400 hover:text-[#2C2424]'}`}>
-            ⭐ Client Reviews
-          </button>
+          <button onClick={() => setActiveTab('products')} className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'products' ? 'text-[#DDA7A5] border-b-2 border-[#DDA7A5]' : 'text-gray-400 hover:text-[#2C2424]'}`}>🛍️ Products</button>
+          <button onClick={() => setActiveTab('reviews')} className={`pb-4 px-2 text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'text-[#DDA7A5] border-b-2 border-[#DDA7A5]' : 'text-gray-400 hover:text-[#2C2424]'}`}>⭐ Client Reviews</button>
         </div>
 
-        {/* =====================================
-            TAB 1: PRODUCTS
-            ===================================== */}
         {activeTab === 'products' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 animate-in fade-in duration-300">
-            {/* UPLOAD FORM */}
             <div className="lg:col-span-5 bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 h-fit">
               <h2 className="text-xl font-serif font-bold mb-6 text-[#2C2424]">Upload New Item</h2>
               <form onSubmit={handleProductSubmit} className="space-y-6">
                 <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Product Name *</label><input type="text" value={productName} onChange={(e) => setProductName(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" required /></div>
                 <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Price (Optional)</label><input type="text" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" /></div>
-                <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Product Details (Optional)</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm h-28 resize-none mt-2" /></div>
-                <div className="flex items-start gap-4 p-5 bg-[#FDF8F5] rounded-xl border border-[#DDA7A5]/20"><input type="checkbox" id="featured" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="w-5 h-5 accent-[#DDA7A5] cursor-pointer mt-1" /><div><label htmlFor="featured" className="text-sm font-bold text-[#2C2424] cursor-pointer block">Feature on Homepage</label><p className="text-[10px] text-gray-500 leading-relaxed mt-1">Check this to show the item in the 4 spots on the front page.</p></div></div>
+                <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Details (Optional)</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm h-28 resize-none mt-2" /></div>
+                
+                {/* CHECKBOXES */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start gap-4 p-4 bg-[#FDF8F5] rounded-xl border border-[#DDA7A5]/20">
+                    <input type="checkbox" id="featured" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} className="w-5 h-5 accent-[#DDA7A5] cursor-pointer mt-1" />
+                    <div>
+                      <label htmlFor="featured" className="text-sm font-bold text-[#2C2424] cursor-pointer block">Feature on Homepage</label>
+                      <p className="text-[10px] text-gray-500 leading-relaxed mt-1">Show in the 4 spots on the front page.</p>
+                    </div>
+                  </div>
+                  
+                  {/* THE NEW BESTSELLER CHECKBOX */}
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <input type="checkbox" id="bestseller" checked={isBestseller} onChange={(e) => setIsBestseller(e.target.checked)} className="w-5 h-5 accent-[#DDA7A5] cursor-pointer mt-1" />
+                    <div>
+                      <label htmlFor="bestseller" className="text-sm font-bold text-[#2C2424] cursor-pointer block">Set as Shop Bestseller</label>
+                      <p className="text-[10px] text-gray-500 leading-relaxed mt-1">Highlights this item in the massive spotlight on the Shop page.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="pt-2"><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Product Photo *</label><div className="relative border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-center hover:border-[#DDA7A5] transition-colors bg-gray-50 group cursor-pointer"><input id="file-upload" type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required /><span className="text-2xl mb-2 group-hover:scale-110 transition-transform">{image ? '✅' : '📸'}</span><span className="text-xs font-bold text-gray-600 text-center">{image ? image.name : "Tap to select an image"}</span></div></div>
-                <button type="submit" disabled={isUploading} className={`w-full py-5 rounded-full uppercase tracking-[0.2em] text-[10px] font-bold transition-all shadow-lg mt-4 ${isUploading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#2C2424] text-white hover:bg-[#DDA7A5]'}`}>{isUploading ? 'Uploading to Website...' : 'Publish to Website'}</button>
+                <button type="submit" disabled={isUploading} className={`w-full py-5 rounded-full uppercase tracking-[0.2em] text-[10px] font-bold transition-all shadow-lg mt-4 ${isUploading ? 'bg-gray-300 text-gray-500' : 'bg-[#2C2424] text-white hover:bg-[#DDA7A5]'}`}>{isUploading ? 'Uploading...' : 'Publish to Website'}</button>
               </form>
             </div>
-            {/* LIVE INVENTORY LIST */}
             <div className="lg:col-span-7">
               <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-serif font-bold text-[#2C2424]">Current Inventory</h2><span className="text-xs font-bold bg-[#DDA7A5]/10 text-[#DDA7A5] px-3 py-1 rounded-full">{inventory.length} Items</span></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
@@ -199,7 +178,10 @@ export default function AdminDashboard() {
                       <button onClick={() => handleProductDelete(item.id, item.name)} className="absolute top-4 right-4 w-8 h-8 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors z-10">✕</button>
                       <div className="w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-4"><img src={item.imageUrl} className="w-full h-full object-cover" alt={item.name} /></div>
                       <div className="flex-1 flex flex-col"><h3 className="font-bold text-sm text-[#2C2424] line-clamp-1 pr-6">{item.name}</h3><p className="text-[10px] text-[#DDA7A5] font-bold tracking-widest mt-1 mb-2">{item.price}</p>
-                        {item.isFeatured && <div className="mt-auto pt-3 border-t border-gray-100"><span className="text-[9px] bg-[#2C2424] text-white px-3 py-1 rounded-full font-bold uppercase tracking-widest">★ Front Page</span></div>}
+                        <div className="mt-auto pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+                          {item.isFeatured && <span className="text-[9px] bg-[#2C2424] text-white px-3 py-1 rounded-full font-bold uppercase tracking-widest">★ Front Page</span>}
+                          {item.isBestseller && <span className="text-[9px] bg-[#DDA7A5] text-white px-3 py-1 rounded-full font-bold uppercase tracking-widest">🔥 Bestseller</span>}
+                        </div>
                       </div>
                     </div>
                   ))
@@ -209,30 +191,19 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* =====================================
-            TAB 2: REVIEWS
-            ===================================== */}
         {activeTab === 'reviews' && (
+          // ... Review Tab remains unchanged
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 animate-in fade-in duration-300">
-            {/* ADD REVIEW FORM */}
             <div className="lg:col-span-5 bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 h-fit">
               <h2 className="text-xl font-serif font-bold mb-6 text-[#2C2424]">Post a Customer Review</h2>
               <form onSubmit={handleReviewSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Customer Name (e.g. Fatima S.) *</label>
-                  <input type="text" value={reviewerName} onChange={(e) => setReviewerName(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" required />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Their Review *</label>
-                  <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder="Type what they said..." className="w-full border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm h-32 resize-none mt-2" required />
-                </div>
+                <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Customer Name (e.g. Fatima S.) *</label><input type="text" value={reviewerName} onChange={(e) => setReviewerName(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" required /></div>
+                <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Their Review *</label><textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder="Type what they said..." className="w-full border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm h-32 resize-none mt-2" required /></div>
                 <button type="submit" disabled={isReviewUploading} className={`w-full py-5 rounded-full uppercase tracking-[0.2em] text-[10px] font-bold transition-all shadow-lg mt-4 ${isReviewUploading ? 'bg-gray-300 text-gray-500' : 'bg-[#DDA7A5] text-white hover:bg-[#2C2424]'}`}>
                   {isReviewUploading ? 'Posting...' : 'Post to Homepage'}
                 </button>
               </form>
             </div>
-            
-            {/* LIVE REVIEWS LIST */}
             <div className="lg:col-span-7">
               <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-serif font-bold text-[#2C2424]">Live Reviews</h2><span className="text-xs font-bold bg-[#DDA7A5]/10 text-[#DDA7A5] px-3 py-1 rounded-full">{reviewsList.length} Active</span></div>
               <div className="flex flex-col gap-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
