@@ -1,16 +1,26 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAboutOpen, setIsAboutOpen] = useState(false); // Controls the About Us Modal!
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   
   const WHATSAPP_URL = "https://wa.me/23272273689?text=Hello%20Ayesha!";
 
+  // THE FIX: Now locks the screen from scrolling for BOTH the mobile menu AND the About Modal
+  useEffect(() => {
+    if (isOpen || isAboutOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isOpen, isAboutOpen]);
+
   return (
     <>
-      <div className="fixed top-0 w-full z-[100] pointer-events-none">
+      <div className="fixed top-0 left-0 w-full z-[100] pointer-events-none">
+        
         <nav className="w-full bg-white/90 backdrop-blur-xl border-b border-gray-200 pointer-events-auto transition-all">
           <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
             
@@ -24,12 +34,9 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-10 text-[10px] font-bold tracking-[0.2em] uppercase text-[#2C2424]">
               <Link href="/" className="hover:text-[#DDA7A5] transition-colors">Home</Link>
               <Link href="/shop" className="hover:text-[#DDA7A5] transition-colors">Shop</Link>
-              
-              {/* NEW ABOUT US BUTTON */}
               <button onClick={() => setIsAboutOpen(true)} className="hover:text-[#DDA7A5] transition-colors uppercase tracking-[0.2em]">
                 About Us
               </button>
-
               <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#2C2424] text-white rounded-full hover:bg-[#DDA7A5] transition-all shadow-lg">
                 Contact
               </a>
@@ -52,12 +59,9 @@ export default function Navbar() {
             <Link href="/shop" onClick={() => setIsOpen(false)} className="text-sm font-bold uppercase tracking-widest text-[#2C2424] hover:text-[#DDA7A5] transition-colors border-b border-gray-200 pb-4 flex justify-between">
               The Collection <span className="text-[#DDA7A5]">→</span>
             </Link>
-            
-            {/* MOBILE ABOUT BUTTON */}
             <button onClick={() => { setIsOpen(false); setIsAboutOpen(true); }} className="text-sm font-bold uppercase tracking-widest text-[#2C2424] hover:text-[#DDA7A5] transition-colors border-b border-gray-200 pb-4 flex justify-between text-left">
               About Us <span className="text-[#DDA7A5]">→</span>
             </button>
-
             <a href={WHATSAPP_URL} onClick={() => setIsOpen(false)} target="_blank" rel="noopener noreferrer" className="text-sm font-bold uppercase tracking-widest text-[#DDA7A5] flex justify-between">
               Contact Us <span>→</span>
             </a>
@@ -68,17 +72,15 @@ export default function Navbar() {
       {/* =========================================
           THE FULL-SCREEN "ABOUT US" MODAL
           ========================================= */}
-      <div className={`fixed inset-0 z-[200] bg-[#FAF9F6]/95 backdrop-blur-2xl transition-all duration-700 ease-in-out flex flex-col px-6 md:px-24 overflow-y-auto ${isAboutOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+      <div className={`fixed inset-0 z-[200] bg-[#FAF9F6]/95 backdrop-blur-2xl transition-all duration-700 ease-in-out flex flex-col overflow-y-auto ${isAboutOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
         
-        {/* Close Button */}
-        <div className="w-full flex justify-end py-8 sticky top-0 bg-[#FAF9F6]/80 backdrop-blur-md z-10">
-          <button onClick={() => setIsAboutOpen(false)} className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-200 hover:bg-[#DDA7A5] hover:text-white transition-colors">
-            ✕
-          </button>
-        </div>
+        {/* THE FIX: Fixed Close Button so it NEVER scrolls away */}
+        <button onClick={() => setIsAboutOpen(false)} className="fixed top-6 right-6 md:top-10 md:right-10 z-[250] w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-2xl border border-gray-200 hover:bg-[#DDA7A5] hover:text-white transition-colors text-lg">
+          ✕
+        </button>
 
         {/* Modal Content */}
-        <div className="max-w-4xl mx-auto w-full pb-32 mt-4 md:mt-12">
+        <div className="max-w-4xl mx-auto w-full px-6 md:px-24 pt-24 pb-32">
           <h2 className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Behind the Brand</h2>
           <h1 className="text-4xl md:text-6xl font-serif font-bold text-[#2C2424] mb-12">Ayesha's Signature</h1>
 

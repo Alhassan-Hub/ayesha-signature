@@ -64,6 +64,12 @@ export default function ShopPage() {
     if (isCartLoaded) localStorage.setItem('ayeshas_cart', JSON.stringify(cart));
   }, [cart, isCartLoaded]);
 
+  // Lock body scroll when Quick View Modal is open
+  useEffect(() => {
+    if (quickViewProduct || isCartOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+  }, [quickViewProduct, isCartOpen]);
+
   const customItems = [
     { id: 'magic-cup', title: 'The Magic Cup', tag: 'Personalized Engraving', file: '/cup.glb' },
     { id: 'prayer-mat', title: 'Premium Prayer Mat', tag: 'Custom Engraving', file: '/mat.glb' },
@@ -119,7 +125,6 @@ export default function ShopPage() {
   return (
     <main className="min-h-screen bg-[#FDF8F5] text-[#2C2424] font-sans overflow-x-hidden relative">
       
-      {/* LOCKED NAVBAR */}
       <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 pointer-events-auto transition-all">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative">
           <Link href="/" className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors flex items-center gap-2 z-10">
@@ -144,7 +149,7 @@ export default function ShopPage() {
       </button>
 
       {/* CART DRAWER */}
-      <div className={`fixed inset-y-0 right-0 w-full md:w-[400px] bg-white z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.1)] ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 w-full md:w-[400px] bg-white z-[150] transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.1)] ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
           <h2 className="font-serif font-bold text-xl text-[#2C2424]">Your Bag</h2>
           <button onClick={() => setIsCartOpen(false)} className="text-gray-400 hover:text-black text-sm uppercase tracking-widest font-bold">Close ✕</button>
@@ -177,59 +182,66 @@ export default function ShopPage() {
         )}
       </div>
 
-      {/* QUICK VIEW DETAILS MODAL */}
+      {/* =========================================
+          THE FIX: BULLETPROOF QUICK VIEW MODAL
+          ========================================= */}
       {quickViewProduct && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="absolute inset-0" onClick={() => setQuickViewProduct(null)}></div>
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
           
-          <div className="relative w-full sm:max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
-            <button onClick={() => setQuickViewProduct(null)} className="absolute top-4 right-6 z-10 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-black">✕</button>
+          {/* Layer 1: The Dark Click-away Blur */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setQuickViewProduct(null)}></div>
+          
+          {/* Layer 2: The actual White Card (Forced to be on top) */}
+          <div className="relative z-[210] w-full sm:max-w-2xl bg-white rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col sm:flex-row max-h-[90vh]">
             
-            <div className="flex flex-col sm:flex-row max-h-[85vh] overflow-y-auto">
-              <div className="w-full sm:w-1/2 h-[40vh] sm:h-auto bg-[#FDF8F5] relative p-6 flex justify-center items-center">
-                <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="max-w-full max-h-full object-contain rounded shadow-sm" />
+            <button onClick={() => setQuickViewProduct(null)} className="absolute top-4 right-4 z-[220] w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-gray-500 hover:text-black shadow-sm border border-gray-100">
+              ✕
+            </button>
+            
+            <div className="w-full sm:w-1/2 h-[40vh] sm:h-auto bg-[#FDF8F5] relative p-6 flex justify-center items-center">
+              <img src={quickViewProduct.imageUrl} alt={quickViewProduct.name} className="max-w-full max-h-full object-contain rounded drop-shadow-md" />
+            </div>
+            
+            <div className="w-full sm:w-1/2 p-6 md:p-8 flex flex-col overflow-y-auto">
+              <p className="text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] mb-2">Ayesha's Signature</p>
+              <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2 leading-tight">{quickViewProduct.name}</h2>
+              <p className="text-sm text-gray-500 mb-6">{quickViewProduct.price}</p>
+              
+              <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
+              
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">The Details</h3>
+              <p className="text-sm text-gray-600 leading-relaxed mb-6 font-light">
+                {quickViewProduct.description ? quickViewProduct.description : 
+                  quickViewProduct.name.toLowerCase().includes('mat') ? "A premium silk prayer mat crafted for ultimate comfort and elegance during your daily Ibadah."
+                  : quickViewProduct.name.toLowerCase().includes('box') || quickViewProduct.name.toLowerCase().includes('bouquet') ? "A thoughtfully curated gift box featuring a selection of our finest essentials. The perfect intentional gift."
+                  : quickViewProduct.name.toLowerCase().includes('hijab') || quickViewProduct.name.toLowerCase().includes('scarf') ? "A beautiful, high-quality hijab scarf available in a variety of stunning colors. It drapes perfectly, offering effortless everyday elegance."
+                  : "A beautiful signature piece from our collection, crafted with care and perfect for your modest lifestyle."
+                }
+              </p>
+
+              <div className="bg-[#FDF8F5] p-4 rounded-xl mb-6 border border-gray-100">
+                <h4 className="text-[9px] font-bold uppercase tracking-widest text-[#2C2424] mb-3">Delivery & Policies</h4>
+                <ul className="text-xs text-gray-500 flex flex-col gap-2 font-light">
+                  <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.</li>
+                  <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.</li>
+                  <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Secure packaging to ensure pristine condition.</li>
+                </ul>
               </div>
-              <div className="w-full sm:w-1/2 p-6 md:p-8 flex flex-col">
-                <p className="text-[#DDA7A5] text-[9px] font-bold uppercase tracking-[0.3em] mb-2">Ayesha's Signature</p>
-                <h2 className="text-2xl font-serif font-bold text-[#2C2424] mb-2 leading-tight">{quickViewProduct.name}</h2>
-                <p className="text-sm text-gray-500 mb-6">{quickViewProduct.price}</p>
-                
-                <div className="h-[1px] w-full bg-gray-100 mb-6"></div>
-                
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">The Details</h3>
-                <p className="text-sm text-gray-600 leading-relaxed mb-6 font-light">
-                  {quickViewProduct.description ? quickViewProduct.description : 
-                    quickViewProduct.name.toLowerCase().includes('mat') ? "A premium silk prayer mat crafted for ultimate comfort and elegance during your daily Ibadah."
-                    : quickViewProduct.name.toLowerCase().includes('box') || quickViewProduct.name.toLowerCase().includes('bouquet') ? "A thoughtfully curated gift box featuring a selection of our finest essentials. The perfect intentional gift."
-                    : quickViewProduct.name.toLowerCase().includes('hijab') || quickViewProduct.name.toLowerCase().includes('scarf') ? "A beautiful, high-quality hijab scarf available in a variety of stunning colors. It drapes perfectly, offering effortless everyday elegance."
-                    : "A beautiful signature piece from our collection, crafted with care and perfect for your modest lifestyle."
-                  }
-                </p>
 
-                <div className="bg-[#FDF8F5] p-4 rounded-xl mb-6 border border-gray-100">
-                  <h4 className="text-[9px] font-bold uppercase tracking-widest text-[#2C2424] mb-3">Delivery & Policies</h4>
-                  <ul className="text-xs text-gray-500 flex flex-col gap-2 font-light">
-                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Nationwide delivery across Sierra Leone.</li>
-                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Standard delivery within 2-4 business days.</li>
-                    <li className="flex items-center gap-2"><span className="text-[#DDA7A5]">✦</span> Secure packaging to ensure pristine condition.</li>
-                  </ul>
-                </div>
-
-                <div className="mt-auto flex gap-3 pt-2">
-                  <button onClick={() => checkoutSingleItem(quickViewProduct)} className="flex-1 py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
-                    Buy Now
-                  </button>
-                  <button onClick={() => addToCart(quickViewProduct)} className="px-6 py-4 border border-[#DDA7A5] text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#FDF8F5] transition-all">
-                    + Bag
-                  </button>
-                </div>
+              <div className="mt-auto flex gap-3 pt-2">
+                <button onClick={() => checkoutSingleItem(quickViewProduct)} className="flex-1 py-4 bg-[#2C2424] text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full shadow-lg hover:bg-[#DDA7A5] transition-all">
+                  Buy Now
+                </button>
+                <button onClick={() => addToCart(quickViewProduct)} className="px-6 py-4 border border-[#DDA7A5] text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.2em] rounded-full hover:bg-[#FDF8F5] transition-all">
+                  + Bag
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 3D SHOWROOM */}
+      {/* FULL SCREEN 3D EXPERIENCE */}
       <div className="relative w-full h-[85vh] flex flex-col items-center justify-center z-10 bg-[#FAF9F6] pt-16">
         <div className="absolute top-32 text-center z-20 pointer-events-none px-4">
           <span className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm border border-white">
@@ -244,13 +256,11 @@ export default function ShopPage() {
               <ambientLight intensity={1.2} color="#ffffff" />
               <spotLight position={[5, 10, 5]} intensity={1.5} color="#DDA7A5" />
               <Environment preset="city" />
-              
               <PresentationControls global zoom={1.5} config={{ mass: 2, tension: 500 }} snap={{ mass: 4, tension: 1500 }}>
                 {customItems.map((item, index) => (
                   <CarouselItem key={item.id} file={item.file} isCurrent={currentIndex === index} config={modelConfigs[item.id]} />
                 ))}
               </PresentationControls>
-
               <ContactShadows position={[0, -1.8, 0]} opacity={0.3} scale={15} blur={2.5} far={4} color="#2C2424" />
             </Canvas>
           </Suspense>
