@@ -169,7 +169,7 @@ export default function Home() {
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#DDA7A5] mb-4">Contact Us</h3>
               <ul className="text-xs text-gray-500 flex flex-col gap-3">
                 <li><a href={WHATSAPP_URL} className="hover:text-[#DDA7A5] transition-colors">WhatsApp: +232 72 273689</a></li>
-                <li><a href="mailto:contact@ayeshas-signature.com" className="hover:text-[#DDA7A5] transition-colors">contact@ayeshas-signature.com</a></li>
+                <li><a href="mailto:barrieisata24@gmail.com" className="hover:text-[#DDA7A5] transition-colors">contact@ayeshas-signature.com</a></li>
                 <li><a href={TIKTOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#DDA7A5] transition-colors">TikTok: @ayeshassignature1</a></li>
                 <li className="mt-2 text-[10px] opacity-70">Mon - Sat: 9:00 AM - 6:00 PM</li>
               </ul>
