@@ -98,7 +98,7 @@ export default function Navbar({ externalOpenState, setExternalOpenState }) {
                     onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1589467332212-003661eb1a47?auto=format&fit=crop&q=80&w=800"; }} 
                    />
                    <div className="absolute inset-0 bg-gradient-to-t from-[#2C2424]/60 via-transparent to-transparent flex items-end p-8">
-                     <p className="text-white text-3xl font-serif italic">IB</p>
+                     <p className="text-white text-3xl font-serif italic"></p>
                    </div>
                 </div>
                 
