@@ -22,7 +22,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeReview, setActiveReview] = useState(0);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [logoError, setLogoError] = useState(false); // Fix for the footer white box
+  const [logoExists, setLogoExists] = useState(true); // State to catch logo errors
 
   const storyLeftRef = useRef(null);
   const storyRightRef = useRef(null);
@@ -30,7 +30,6 @@ export default function Home() {
   const WHATSAPP_URL = "https://wa.me/23272273689?text=Hello%20Ayesha!";
   const TIKTOK_URL = "https://www.tiktok.com/@ayeshassignature1";
 
-  // Review Transition
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveReview((prev) => (prev + 1) % liveReviews.length);
@@ -38,7 +37,6 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [liveReviews.length]);
 
-  // Smooth Scroll
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
@@ -46,7 +44,6 @@ export default function Home() {
     return () => lenis.destroy();
   }, []);
 
-  // Firebase Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,7 +65,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // GSAP
   useEffect(() => {
     if (!isLoading) {
       gsap.utils.toArray('.reveal-text').forEach((el) => {
@@ -98,14 +94,14 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PRO BIOGRAPHY SECTION */}
+        {/* BIOGRAPHY SECTION */}
         <section className="min-h-[90vh] flex flex-col items-center justify-center px-6 md:px-16 lg:px-24 mb-24">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start gap-12 md:gap-24">
             <div className="w-full md:w-3/5 reveal-text order-2 md:order-1" ref={storyLeftRef}>
-              <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">The Heart of the Brand</p>
+              <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Behind the Brand</p>
               <h2 className="text-4xl md:text-6xl font-serif font-bold leading-tight mb-8 text-[#2C2424]">Crafting elegance, <br /> <span className="text-[#DDA7A5] italic font-light">with purpose.</span></h2>
               <div className="space-y-6 text-sm md:text-base opacity-90 leading-relaxed font-light text-gray-700">
-                <p>Isata Barrie is a passionate entrepreneur and final-year student at <strong>IPAM</strong>, specializing in Procurement and Supply Chain Management. Her academic foundation, paired with her work at <strong>Watu Simu</strong>, drives the excellence behind Ayesha's Signature.</p>
+                <p>Isata Barrie is a passionate entrepreneur and final-year student at <strong>IPAM</strong>, specializing in Procurement and Supply Chain Management.</p>
                 <p>As the founder, Isata has built a brand rooted in creativity and authenticity. Proudly <strong>Fullah</strong> by tribe and <strong>Muslim</strong> by faith, she is guided by values of integrity and service.</p>
                 <p className="italic border-l-4 border-[#DDA7A5] pl-6 py-2 text-[#2C2424] font-serif text-lg">"Success is measured by the positive impact one makes in the lives of others."</p>
               </div>
@@ -128,10 +124,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SCROLLING MARQUEE */}
+        {/* MARQUEE */}
         <section className="w-full py-8 overflow-hidden flex whitespace-nowrap bg-[#FDF8F5] border-y border-[#DDA7A5]/20 my-16">
           <div className="animate-marquee flex gap-12 text-[10px] md:text-xs font-bold tracking-[0.4em] uppercase items-center text-[#DDA7A5]">
-            <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
             <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
             <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
           </div>
@@ -168,7 +163,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* TRANSITIONING REVIEWS */}
+        {/* REVIEWS */}
         <section className="py-32 px-6 md:px-16 lg:px-24 bg-[#FDF8F5] border-y border-[#DDA7A5]/20">
           <div className="max-w-4xl mx-auto text-center reveal-text">
             <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Testimonials</p>
@@ -188,22 +183,25 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FIXED FOOTER */}
+        {/* FINAL FIXED FOOTER */}
         <footer className="bg-[#2C2424] text-white py-24 px-6">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16 text-center md:text-left items-start">
             
-            {/* FIRST COLUMN - NO MORE WHITE BOX */}
             <div className="flex flex-col items-center md:items-start space-y-6">
-               {!logoError && (
+               {/* Fixed Image Logic: No filters, State-based hiding */}
+               {logoExists && (
                  <img 
                    src="/logo.png" 
-                   alt="" 
+                   alt="Ayesha's Signature" 
                    className="h-10 w-auto object-contain" 
                    style={{ filter: 'brightness(0) invert(1)' }}
-                   onError={() => setLogoError(true)} 
+                   onError={() => setLogoExists(false)} 
                  />
                )}
-               <h2 className="font-serif font-bold text-2xl tracking-widest italic text-[#DDA7A5]">signature</h2>
+               {/* Full brand text restored */}
+               <h2 className="font-serif font-bold text-2xl tracking-widest italic text-[#DDA7A5]">
+                  Ayesha's <span className="md:block lg:inline">Signature</span>
+               </h2>
                <p className="text-[11px] opacity-60 uppercase tracking-[0.2em] leading-loose max-w-xs">Premium modest fashion and luxury Islamic gifting crafted with intention in Sierra Leone.</p>
             </div>
 
@@ -221,7 +219,6 @@ export default function Home() {
                <ul className="text-[11px] uppercase tracking-widest space-y-5 opacity-80 font-bold">
                   <li><a href={WHATSAPP_URL} target="_blank" className="hover:text-[#DDA7A5]">WhatsApp</a></li>
                   <li><a href={TIKTOK_URL} target="_blank" className="hover:text-[#DDA7A5]">TikTok</a></li>
-                  <li><p className="opacity-50">Freetown, Sierra Leone</p></li>
                </ul>
             </div>
           </div>
