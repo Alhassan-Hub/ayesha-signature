@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   const [isUploading, setIsUploading] = useState(false);
   const [inventory, setInventory] = useState([]);
 
-  // NEW: Editing State
+  // Editing State
   const [editingProductId, setEditingProductId] = useState(null);
   const [existingImageUrl, setExistingImageUrl] = useState('');
 
@@ -185,8 +185,8 @@ export default function AdminDashboard() {
         {activeTab === 'products' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start animate-in fade-in duration-300">
             
-            {/* LEFT SIDE: THE FORM (Now Sticky!) */}
-            <div className="lg:col-span-5 bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 sticky top-6">
+            {/* LEFT SIDE: THE FORM (Only sticky on desktop now!) */}
+            <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-[2rem] shadow-xl border border-gray-100 lg:sticky lg:top-6 z-10">
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                 <h2 className="text-xl font-serif font-bold text-[#2C2424]">
                   {editingProductId ? 'Editing Item' : 'Upload New Item'}
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
               </form>
             </div>
 
-            {/* RIGHT SIDE: THE LIST (Natural scrolling now) */}
+            {/* RIGHT SIDE: THE LIST */}
             <div className="lg:col-span-7 pb-20">
               <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-serif font-bold text-[#2C2424]">Current Inventory</h2><span className="text-xs font-bold bg-[#DDA7A5]/10 text-[#DDA7A5] px-3 py-1 rounded-full">{inventory.length} Items</span></div>
               
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
         {/* REVIEWS TAB */}
         {activeTab === 'reviews' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start animate-in fade-in duration-300">
-            <div className="lg:col-span-5 bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 sticky top-6">
+            <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-[2rem] shadow-xl border border-gray-100 lg:sticky lg:top-6 z-10">
               <h2 className="text-xl font-serif font-bold mb-6 text-[#2C2424]">Post a Customer Review</h2>
               <form onSubmit={handleReviewSubmit} className="space-y-6">
                 <div><label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Customer Name (e.g. Fatima S.) *</label><input type="text" value={reviewerName} onChange={(e) => setReviewerName(e.target.value)} className="w-full border-b border-gray-200 py-3 focus:outline-none focus:border-[#DDA7A5] transition-colors bg-transparent text-sm" required /></div>
