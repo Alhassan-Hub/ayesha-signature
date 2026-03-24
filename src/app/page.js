@@ -208,10 +208,20 @@ export default function Home() {
         {/* FOOTER WITH RESTORED TIKTOK */}
         <footer className="bg-[#2C2424] text-white py-24 px-6">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16">
-            <div className="space-y-6">
-               <img src="/logo.png" className="h-12 w-auto brightness-0 invert" alt="Ayesha's Signature" onError={(e) => e.target.style.display='none'} />
-               <p className="text-[11px] opacity-60 uppercase tracking-[0.2em] leading-loose max-w-xs">Premium modest fashion and luxury Islamic gifting crafted with intention in Sierra Leone.</p>
-            </div>
+            <div className="flex flex-col items-center md:items-start space-y-6">
+  {/* This image now fully deletes itself if not found, removing the white box */}
+  <img 
+    src="/logo.png" 
+    alt="" 
+    className="h-10 w-auto object-contain" 
+    style={{ filter: 'brightness(0) invert(1)' }}
+    onError={(e) => e.currentTarget.remove()} 
+  />
+  <h2 className="font-serif font-bold text-2xl tracking-widest italic text-[#DDA7A5]">signature</h2>
+  <p className="text-[10px] md:text-[11px] opacity-60 uppercase tracking-[0.2em] leading-loose max-w-xs">
+    Premium modest fashion and luxury Islamic gifting crafted with intention in Sierra Leone.
+  </p>
+</div>
             <div>
                <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#DDA7A5] mb-8 underline underline-offset-8">Navigation</h3>
                <ul className="text-[11px] uppercase tracking-widest space-y-5 opacity-80 font-bold">
