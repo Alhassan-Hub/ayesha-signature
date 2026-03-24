@@ -22,7 +22,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeReview, setActiveReview] = useState(0);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [logoExists, setLogoExists] = useState(true); // State to catch logo errors
+  const [logoExists, setLogoExists] = useState(true); 
 
   const storyLeftRef = useRef(null);
   const storyRightRef = useRef(null);
@@ -124,8 +124,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* MARQUEE */}
-        <section className="w-full py-8 overflow-hidden flex whitespace-nowrap bg-[#FDF8F5] border-y border-[#DDA7A5]/20 my-16">
+        {/* MARQUEE - Thinner height, adjusted spacing */}
+        <section className="w-full py-3 overflow-hidden flex whitespace-nowrap bg-[#FDF8F5] border-y border-[#DDA7A5]/20 my-8">
           <div className="animate-marquee flex gap-12 text-[10px] md:text-xs font-bold tracking-[0.4em] uppercase items-center text-[#DDA7A5]">
             <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
             <span>✦ Premium Hijabs</span><span>✦ Prayer Mats</span><span>✦ Gift Box</span><span>✦ Hijab Bouquet</span>
@@ -163,19 +163,19 @@ export default function Home() {
           </div>
         </section>
 
-        {/* REVIEWS */}
-        <section className="py-32 px-6 md:px-16 lg:px-24 bg-[#FDF8F5] border-y border-[#DDA7A5]/20">
+        {/* REVIEWS - Reduced padding, margins, and container height */}
+        <section className="py-16 px-6 md:px-16 lg:px-24 bg-[#FDF8F5] border-y border-[#DDA7A5]/20">
           <div className="max-w-4xl mx-auto text-center reveal-text">
-            <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-4">Testimonials</p>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424] mb-16">Client Love</h2>
-            <div className="relative h-[300px] md:h-[200px] flex items-center justify-center">
+            <p className="text-[#DDA7A5] text-[10px] font-bold uppercase tracking-[0.4em] mb-2">Testimonials</p>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2C2424] mb-8">Client Love</h2>
+            <div className="relative h-[220px] md:h-[160px] flex items-center justify-center">
               {liveReviews.map((review, idx) => (
                 <div key={idx} className={`absolute w-full transition-all duration-1000 ease-in-out flex flex-col items-center ${activeReview === idx ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
-                  <div className="text-[#D4AF37] text-xl mb-6">★★★★★</div>
-                  <p className="text-lg md:text-2xl text-gray-600 italic font-light leading-relaxed mb-8 max-w-2xl">"{review.text}"</p>
+                  <div className="text-[#D4AF37] text-xl mb-3">★★★★★</div>
+                  <p className="text-lg md:text-xl text-gray-600 italic font-light leading-relaxed mb-5 max-w-2xl">"{review.text}"</p>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold text-xl">{review.initial || review.name[0]}</div>
-                    <div className="text-left"><h4 className="text-xs font-bold text-[#2C2424] uppercase tracking-widest">{review.name}</h4><p className="text-[9px] text-gray-400 uppercase tracking-widest">Verified Buyer</p></div>
+                    <div className="w-10 h-10 bg-[#DDA7A5]/20 rounded-full flex items-center justify-center text-[#DDA7A5] font-serif font-bold text-lg">{review.initial || review.name[0]}</div>
+                    <div className="text-left"><h4 className="text-[10px] font-bold text-[#2C2424] uppercase tracking-widest">{review.name}</h4><p className="text-[8px] text-gray-400 uppercase tracking-widest">Verified Buyer</p></div>
                   </div>
                 </div>
               ))}
@@ -187,17 +187,17 @@ export default function Home() {
         <footer className="bg-[#2C2424] text-white py-24 px-6">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16 text-center md:text-left items-start">
             
-            <div className="flex flex-col items-center md:items-start space-y-6">
-               {/* Fixed Image Logic: No filters, State-based hiding */}
+            <div className="flex flex-col items-center md:items-start space-y-5">
+               {/* Logo updated to look better even if it has a white background */}
                {logoExists && (
                  <img 
                    src="/logo.png" 
                    alt="Ayesha's Signature" 
-                   className="h-10 w-auto object-contain" 
+                   className="max-h-16 w-auto object-center rounded-xl" 
                    onError={() => setLogoExists(false)} 
                  />
                )}
-               {/* Full brand text restored */}
+               {/* Full brand text */}
                <h2 className="font-serif font-bold text-2xl tracking-widest italic text-[#DDA7A5]">
                   Ayesha's <span className="md:block lg:inline">Signature</span>
                </h2>
